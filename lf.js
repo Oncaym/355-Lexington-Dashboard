@@ -1,0 +1,957 @@
+/* ============================================================================
+   lf.js — railing progress   (355 Lexington Avenue, project-specific)
+   ----------------------------------------------------------------------------
+   NOT a core file. app.js / app-log.js / cloud-sync.js stay byte-identical with
+   CP2 + AC3 so they can be synced between trackers; everything this job needs
+   that they don't have lives here, layered on top by wrapping the core
+   functions after app.js has defined them. Load order matters: this script must
+   come AFTER app.js in index.html.
+
+   WHY IT EXISTS
+   CP2 and AC3 count units — a storefront is either in or it isn't. Railings
+   aren't like that:
+
+     • A guardrail run is a LENGTH. The 12th floor is 264 LF that goes in over
+       several days, and "which stretch is done" is a real question. So each run
+       is drawn on the plan at its true surveyed shape (straight out of the
+       Bluebeam markups in the CD set) and you DRAG ALONG IT to say how much is
+       standing. Feet in, percentage out.
+     • A terrace divider is a PANEL. Per Leo 2026-08-18 there is no LF
+       percentage for dividers — a panel is in or it isn't. They're drawn as
+       individual segments you click to toggle.
+     • An equipment screen (26th + 27th mech roofs, added 2026-08-27) is a
+       LENGTH like the guardrail and behaves identically — same drag, same
+       modal, same feet. It is kept as its own category only for REPORTING:
+       its own card, its own column, its own bar on the trend, because it is a
+       different product bought and built separately. Rows are keyed ES**;
+       everything behavioural asks isRun(), not isGR().
+
+   DATA ADDED TO EACH UNIT (seeded from project-config.js, which is generated
+   from the drawings by _build/write_config.py — see that file before editing):
+
+     Guardrail row          Terrace divider row
+     ------------------     ----------------------------
+     lf        total feet   lf          total feet (reference only)
+     runs[]    {label,lf,pts}   panels[]    {label,lf,pts}
+     runsDone[] feet per run    panelsDone[] one boolean per panel
+     lfDone    sum(runsDone)
+
+   `pts` are normalised 0..1 inside that floor's plan image, so the overlay
+   lines up no matter how the image is scaled or zoomed.
+
+   Install status is DERIVED from those numbers and written into the Calendar
+   tab's Frame row before core saveUnit() reads it, so markers, charts, the
+   daily log and Firebase sync all keep working exactly as on the other two
+   projects. An 'Issue' status is never overwritten: that is a human judgement,
+   not arithmetic.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var HIDDEN_SCOPES = ['caulking', 'beautyCap'];   // CP2 scopes with no meaning here
+
+  /* Colours come from the theme, not from here (themes.js). Read live rather than
+     cached at load: switching theme re-runs renderOverlay()/renderCharts(), and both
+     must pick up the new palette. Fallbacks are the night-theme values, so this still
+     works if themes.js is ever absent. */
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.body).getPropertyValue(name);
+      if (v && v.trim()) return v.trim();
+    } catch (e) {}
+    return fallback;
+  }
+  function grColor() { return cssVar('--rail-gr', '#7ee787'); }
+  function tdColor() { return cssVar('--rail-td', '#a371f7'); }
+  function esColor() { return cssVar('--rail-es', '#e3b341'); }
+  function trackColor() { return cssVar('--rail-track', 'rgba(140,150,165,.55)'); }
+  function issueColor() { return cssVar('--red', '#f85149'); }
+
+  /* Bumped whenever this file changes shape, and shown on the plan header. v2 shipped
+     under v1's ?v= query, so browsers kept running the old script against the new files
+     and the interactive railings simply never appeared — with no error to go on. The
+     badge makes "which build is actually loaded" answerable at a glance; keep it in step
+     with the ?v= strings in index.html. */
+  var BUILD = 'geo·2026-08-27a';
+
+  // ---------------------------------------------------------------- helpers
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function num(n) {
+    return (Math.round((Number(n) || 0) * 100) / 100)
+      .toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function pct(done, total) { return total > 0 ? Math.round((done / total) * 100) : 0; }
+  function units() {
+    return (typeof state !== 'undefined' && state && Array.isArray(state.units)) ? state.units : [];
+  }
+  function unitByKey(k) { return units().find(function (u) { return u.key === k; }) || null; }
+
+  /* A piece counts as geometry only if it carries a polyline. v1 of this tracker stored
+     `runs` as an array of LABEL STRINGS ("35'-0\""), and a browser that still has that in
+     localStorage would otherwise reach the drawing code and blow up on `run.pts`. Checking
+     the shape — not just the key — makes every path below safe against older saved state,
+     which baselineSync() then replaces with the real geometry. */
+  function hasGeom(list) {
+    return Array.isArray(list) && list.length > 0 &&
+      list.every(function (p) { return p && Array.isArray(p.pts) && p.pts.length >= 2; });
+  }
+  /* Three categories, two behaviours. Guardrail and equipment screen are both RUN-based
+     (feet, dragged along the line); dividers are panels. So the drawing / dragging / modal
+     code all asks isRun(), and only the reporting split — cards, floor table, trend,
+     colour — cares which of the two a run belongs to.
+
+     isRun stays a SHAPE test for the upgrade reason in hasGeom() above; the ES/GR split on
+     top of it is by key, which is safe because no older saved state has ES rows at all. */
+  function isRun(u) { return !!u && hasGeom(u.runs); }
+  function isES(u) { return isRun(u) && /^ES/.test(u.key || ''); }
+  function isGR(u) { return isRun(u) && !isES(u); }
+  function isTD(u) { return !!u && hasGeom(u.panels); }
+
+  function lfOf(u) { var v = Number(u && u.lf); return isFinite(v) && v > 0 ? v : 0; }
+  function runDone(u, i) {
+    var v = Number((u.runsDone || [])[i]);
+    if (!isFinite(v) || v < 0) v = 0;
+    var cap = Number(u.runs[i].lf) || 0;
+    return Math.min(v, cap);
+  }
+  function grDone(u) {
+    return u.runs.reduce(function (s, r, i) { return s + runDone(u, i); }, 0);
+  }
+  function tdDone(u) {
+    return (u.panelsDone || []).filter(Boolean).length;
+  }
+  /* One progress reading for any row, so the cards / table / drill-down don't each
+     re-derive it: {done,total,unit,pctv} where unit is 'LF' or 'panels'. */
+  function progress(u) {
+    if (isRun(u)) { var d = grDone(u), t = lfOf(u); return { done: d, total: t, unit: 'LF', pctv: pct(d, t) }; }
+    if (isTD(u)) { var n = tdDone(u), m = u.panels.length; return { done: n, total: m, unit: 'panels', pctv: pct(n, m) }; }
+    return { done: 0, total: 0, unit: '', pctv: 0 };
+  }
+  function sumProgress(list) {
+    return list.reduce(function (a, u) {
+      var p = progress(u); a.done += p.done; a.total += p.total; return a;
+    }, { done: 0, total: 0 });
+  }
+  function grUnits() { return units().filter(isGR); }
+  function esUnits() { return units().filter(isES); }
+  function tdUnits() { return units().filter(isTD); }
+
+  /* --- baseline sync -------------------------------------------------------
+     lf / runs / panels / sheet are DRAWING data, not user input — force them to
+     match project-config.js on every load (same reasoning as core's `zone` sync),
+     so a corrected extraction reaches live cloud data without a /state reset.
+     runsDone / panelsDone are the team's work and are only ever resized, never
+     cleared. */
+  function baselineSync() {
+    var seeds = (window.PROJECT && Array.isArray(PROJECT.seedUnits)) ? PROJECT.seedUnits : [];
+    var byKey = {};
+    seeds.forEach(function (s) { byKey[s.key] = s; });
+    units().forEach(function (u) {
+      var s = byKey[u.key];
+      if (s) {
+        if (typeof s.lf === 'number') u.lf = s.lf;
+        if (s.sheet) u.sheet = s.sheet;
+        if (Array.isArray(s.runs)) u.runs = JSON.parse(JSON.stringify(s.runs));
+        if (Array.isArray(s.panels)) u.panels = JSON.parse(JSON.stringify(s.panels));
+      }
+      if (isRun(u)) {
+        if (!Array.isArray(u.runsDone)) u.runsDone = [];
+        u.runsDone.length = u.runs.length;
+        for (var i = 0; i < u.runs.length; i++) {
+          var v = Number(u.runsDone[i]);
+          u.runsDone[i] = (isFinite(v) && v > 0) ? Math.min(v, u.runs[i].lf) : 0;
+        }
+        u.lfDone = Math.round(grDone(u) * 100) / 100;
+      }
+      if (isTD(u)) {
+        if (!Array.isArray(u.panelsDone)) u.panelsDone = [];
+        u.panelsDone.length = u.panels.length;
+        for (var j = 0; j < u.panels.length; j++) u.panelsDone[j] = !!u.panelsDone[j];
+      }
+    });
+  }
+
+  /* --- commit ---------------------------------------------------------------
+     Everything that changes progress funnels through here: derive the status,
+     write the daily-log delta, persist. `describe` labels the change in the
+     cloud Edit History the same way core's own edits do. */
+  function deriveStatus(u) {
+    if (u.status === 'issue') return u.status;      // human judgement, never overwritten
+    var p = progress(u);
+    if (p.done <= 0) return 'pending';
+    return (p.total > 0 && p.done >= p.total - 1e-6) ? 'installed' : 'in-progress';
+  }
+  function commit(u, before, label) {
+    if (isRun(u)) u.lfDone = Math.round(grDone(u) * 100) / 100;
+    var st = deriveStatus(u);
+    u.status = st;
+    if (!u.scopes) u.scopes = {};
+    if (st === 'pending') { u.date = ''; }
+    else if (!u.date) { u.date = today(); }
+    u.scopes.frame = { status: st, date: u.date || '' };
+    logDelta(u, before, progress(u).done);
+    if (typeof CloudSync !== 'undefined' && CloudSync.describe) CloudSync.describe(label);
+    if (typeof saveState === 'function') saveState(false, label);
+    if (typeof render === 'function') render(); else refresh();
+  }
+
+  /* --- daily log: the day's production ------------------------------------
+     Core only logs a unit when it reaches 'installed' or 'issue' — right for a
+     storefront, wrong here: putting in 100 of the 12th floor's 264 LF is a real
+     day's work and has to show on the trend. One entry per row per day,
+     rewritten (not duplicated) when the number is corrected later the same day;
+     if the day nets out to zero the entry is removed again.
+
+     Deliberately NOT shaped like a core auto-entry (`auto:true` + `categories[]`
+     is what removeUnitFromUnitLogs() sweeps) so these survive core's sweep. */
+  function logDelta(u, before, after) {
+    if (typeof state === 'undefined' || !state || !Array.isArray(state.log)) return;
+    if (Math.abs(after - before) < 0.005) return;
+    var date = u.date || today();
+    var e = state.log.find(function (l) {
+      return l && l.lfEntry === true && l.unitKey === u.key && l.date === date;
+    });
+    if (!e) {
+      e = { date: date, category: 'framing', lfEntry: true, unitKey: u.key, from: before };
+      state.log.push(e);
+    }
+    e.to = after;
+    if (Math.abs(e.to - e.from) < 0.005) { state.log.splice(state.log.indexOf(e), 1); return; }
+    var d = Math.round((e.to - e.from) * 100) / 100;
+    var p = progress(u);
+    e.unit = p.unit;
+    e.content = u.id + ' · ' + (d > 0 ? '+' : '') + num(d) + ' ' + p.unit +
+      ' (' + num(e.to) + ' / ' + num(p.total) + ' · ' + pct(e.to, p.total) + '%)';
+  }
+
+  // ------------------------------------------------------------ headline cards
+  function card(valueId, subId, done, total, unitLabel) {
+    var v = document.getElementById(valueId);
+    if (v) v.textContent = pct(done, total) + '%';
+    var s = document.getElementById(subId);
+    if (s) s.textContent = num(done) + ' / ' + num(total) + ' ' + unitLabel;
+  }
+  function paintCards() {
+    var g = sumProgress(grUnits()), d = sumProgress(tdUnits()), e = sumProgress(esUnits());
+    card('kpi-lf-gr', 'kpi-lf-gr-sub', g.done, g.total, 'LF');
+    card('kpi-lf-td', 'kpi-lf-td-sub', d.done, d.total, 'panels');
+    card('kpi-lf-es', 'kpi-lf-es-sub', e.done, e.total, 'LF');
+  }
+
+  // -------------------------------------------------------- by-floor rollup
+  function bar(done, total, color) {
+    var p = pct(done, total);
+    return '<span class="lf-bar" title="' + p + '%"><span style="width:' + p + '%;background:' + color + '"></span></span>';
+  }
+  function rollupRow(label, g, d, e, isTotal) {
+    var overall = pct((g.total ? g.done / g.total : 0) * (g.total ? 1 : 0) + 0, 1); // placeholder, replaced below
+    // A floor's headline % weights the two scopes by their own units, which don't mix
+    // (feet vs panels) — so show them side by side and give the floor an LF-weighted
+    // number only when there is guardrail on it.
+    /* The floor headline weights the two FOOT scopes together (same unit) and falls back to
+       panels on a floor that has nothing but dividers. */
+    var ftDone = g.done + e.done, ftTotal = g.total + e.total;
+    var floorPct = ftTotal ? pct(ftDone, ftTotal) : (d.total ? pct(d.done, d.total) : 0);
+    return '<tr' + (isTotal ? ' class="lf-total"' : '') + '>' +
+      '<td>' + esc(label) + '</td>' +
+      '<td class="lf-n">' + (g.total ? num(g.done) + ' / ' + num(g.total) + ' LF' : '—') + '</td>' +
+      '<td class="lf-b">' + (g.total ? bar(g.done, g.total, grColor()) : '') + '</td>' +
+      '<td class="lf-n">' + (d.total ? d.done + ' / ' + d.total : '—') + '</td>' +
+      '<td class="lf-b">' + (d.total ? bar(d.done, d.total, tdColor()) : '') + '</td>' +
+      '<td class="lf-n">' + (e.total ? num(e.done) + ' / ' + num(e.total) + ' LF' : '—') + '</td>' +
+      '<td class="lf-b">' + (e.total ? bar(e.done, e.total, esColor()) : '') + '</td>' +
+      '<td class="lf-n lf-strong">' + floorPct + '%</td>' +
+      '</tr>';
+  }
+  function paintByFloor() {
+    var host = document.getElementById('lfByFloor');
+    if (!host) return;
+    var floors = (typeof getFloors === 'function') ? getFloors() : [];
+    var rows = floors.map(function (f) {
+      var on = units().filter(function (u) { return (u.level || '') === f.key; });
+      return rollupRow((typeof floorLabel === 'function') ? floorLabel(f) : f.key,
+        sumProgress(on.filter(isGR)), sumProgress(on.filter(isTD)),
+        sumProgress(on.filter(isES)), false);
+    }).join('');
+    rows += rollupRow('All floors', sumProgress(grUnits()), sumProgress(tdUnits()),
+      sumProgress(esUnits()), true);
+    host.innerHTML = '<table class="lf-table"><thead><tr>' +
+      '<th>Floor</th><th colspan="2">Guardrail</th><th colspan="2">Terrace Divider (panels)</th>' +
+      '<th colspan="2">Equipment Screen</th><th>Floor</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  /* ==========================================================================
+     PLAN OVERLAY — the railing drawn at its real shape, draggable
+     --------------------------------------------------------------------------
+     An SVG sits on top of the plan image inside #planWrap. viewBox is 0 0 1000
+     1000 with preserveAspectRatio="none", so normalised 0..1 geometry stretches
+     to exactly cover the image at any size; `vector-effect:non-scaling-stroke`
+     keeps the lines a constant on-screen width despite that distortion.
+
+     Progress is drawn with a stroke dash on a copy of the path (pathLength=1),
+     so the filled part follows the true shape around every corner.
+
+     Hit testing walks the path in SCREEN space, not user space: the viewBox is
+     deliberately non-uniform, so "closest point" measured in user units would
+     be wrong on any plan that isn't square.
+     ========================================================================== */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var _drag = null;
+
+  function planUnitsOnFloor() {
+    var lvl = (typeof currentLevel !== 'undefined') ? currentLevel : null;
+    return units().filter(function (u) { return u.level === lvl && (isRun(u) || isTD(u)); });
+  }
+  function d_of(pts) {
+    if (!Array.isArray(pts) || pts.length < 2) return '';
+    return pts.map(function (p, i) {
+      return (i ? 'L' : 'M') + (p[0] * 1000).toFixed(2) + ' ' + (p[1] * 1000).toFixed(2);
+    }).join(' ');
+  }
+  function statusColor(u) {
+    if (u.status === 'issue') return issueColor();
+    return isTD(u) ? tdColor() : isES(u) ? esColor() : grColor();
+  }
+
+  function renderOverlay() {
+    var wrap = document.getElementById('planWrap');
+    if (!wrap) return;
+    var svg = document.getElementById('lfOverlay');
+    if (!svg) {
+      svg = document.createElementNS(SVGNS, 'svg');
+      svg.id = 'lfOverlay';
+      svg.setAttribute('viewBox', '0 0 1000 1000');
+      svg.setAttribute('preserveAspectRatio', 'none');
+      wrap.appendChild(svg);
+    }
+    if (svg.parentNode !== wrap) wrap.appendChild(svg);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    /* Sync the baseline BEFORE drawing. core's render() calls renderPlan() before
+       renderKPIs(), so on the very first paint after an upgrade the units still hold
+       whatever was in localStorage — v1 shape included. Waiting for the renderKPIs hook
+       to fix them was how the overlay came up empty with a TypeError in the console. */
+    baselineSync();
+
+    var on = planUnitsOnFloor();
+    on.forEach(function (u) {
+      if (isRun(u)) u.runs.forEach(function (r, i) {
+        try { drawRun(svg, u, r, i); } catch (e) { console.error('[lf] run', u.key, i, e); }
+      });
+      if (isTD(u)) u.panels.forEach(function (p, i) {
+        try { drawPanel(svg, u, p, i); } catch (e) { console.error('[lf] panel', u.key, i, e); }
+      });
+    });
+    selfCheck(svg, on);
+  }
+
+  /* If the seed has geometry for this floor but nothing was drawn, say so loudly. The
+     failure mode this catches is a stale cached lf.js / project-config.js: the page looks
+     fine, just inert, and there is no error anywhere to explain it. */
+  function selfCheck(svg, on) {
+    var want = on.reduce(function (s, u) {
+      return s + (isRun(u) ? u.runs.length : 0) + (isTD(u) ? u.panels.length : 0);
+    }, 0);
+    var got = svg.querySelectorAll('.lf-run-g, .lf-panel-g').length;
+    var warn = document.getElementById('lfWarn');
+    if (want > 0 && got < want) {
+      if (!warn) {
+        warn = document.createElement('div');
+        warn.id = 'lfWarn';
+        var sec = document.getElementById('planSection');
+        if (sec) sec.insertBefore(warn, sec.firstChild);
+      }
+      warn.textContent = '⚠ Only ' + got + ' of ' + want + ' railing pieces drew on this floor. ' +
+        'Hard-refresh (Ctrl+Shift+R / ⌘+Shift+R); if that does not fix it, the browser console ' +
+        'will name the piece that failed.';
+      warn.style.display = 'block';
+      console.warn('[lf] ' + BUILD + ': expected ' + want + ' pieces on this floor, drew ' + got);
+    } else if (warn) {
+      warn.style.display = 'none';
+    }
+  }
+
+  /* Which build is on screen, without opening devtools. */
+  function stampBuild() {
+    var head = document.querySelector('#planSection .section-header');
+    if (!head || document.getElementById('lfBuild')) return;
+    var b = document.createElement('span');
+    b.id = 'lfBuild';
+    b.textContent = BUILD;
+    b.title = 'lf.js build. If this does not match what you were told to expect, hard-refresh.';
+    head.appendChild(b);
+  }
+
+  function mk(tag, attrs) {
+    var el = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+    return el;
+  }
+
+  function drawRun(svg, u, run, i) {
+    var d = d_of(run.pts);
+    var g = mk('g', { class: 'lf-run-g', 'data-key': u.key, 'data-i': i });
+    g.appendChild(mk('path', { d: d, class: 'lf-track', stroke: trackColor() }));
+    var done = runDone(u, i);
+    var frac = run.lf > 0 ? Math.max(0, Math.min(1, done / run.lf)) : 0;
+    var fill = mk('path', {
+      d: d, class: 'lf-fill', pathLength: '1',
+      stroke: statusColor(u),
+      'stroke-dasharray': frac + ' 1'
+    });
+    g.appendChild(fill);
+    var hit = mk('path', { d: d, class: 'lf-hit' });
+    var t = document.createElementNS(SVGNS, 'title');
+    t.textContent = u.id + ' · run ' + (i + 1) + '/' + u.runs.length + ' · ' + run.label +
+      ' · ' + num(done) + ' / ' + num(run.lf) + ' LF (' + pct(done, run.lf) + '%)' +
+      '\nDrag along the line to set how much is installed · click to open the row';
+    hit.appendChild(t);
+    g.appendChild(hit);
+    svg.appendChild(g);
+
+    if (frac > 0.001) {
+      // getPointAtLength is real-browser-only (jsdom has no SVG geometry), and it also
+      // throws on a path that isn't laid out yet. The knob is decoration — never let it
+      // take the whole overlay down.
+      try {
+        var pt = fill.getPointAtLength(fill.getTotalLength() * frac);
+        g.appendChild(mk('circle', { cx: pt.x, cy: pt.y, r: 5, class: 'lf-knob', fill: statusColor(u) }));
+      } catch (e) {}
+    }
+    hit.addEventListener('pointerdown', function (ev) { startDrag(ev, u, i, fill, hit); });
+  }
+
+  function drawPanel(svg, u, panel, i) {
+    var done = !!(u.panelsDone || [])[i];
+    var g = mk('g', { class: 'lf-panel-g', 'data-key': u.key, 'data-i': i });
+    g.appendChild(mk('path', { d: d_of(panel.pts), class: 'lf-track lf-track-td', stroke: trackColor() }));
+    var line = mk('path', {
+      d: d_of(panel.pts), class: 'lf-panel' + (done ? ' on' : ''),
+      stroke: done ? statusColor(u) : trackColor()
+    });
+    g.appendChild(line);
+    var hit = mk('path', { d: d_of(panel.pts), class: 'lf-hit' });
+    var t = document.createElementNS(SVGNS, 'title');
+    t.textContent = u.id + ' · panel ' + (i + 1) + '/' + u.panels.length + ' · ' + panel.label +
+      ' · ' + (done ? 'installed' : 'not installed') + '\nClick to toggle';
+    hit.appendChild(t);
+    g.appendChild(hit);
+    svg.appendChild(g);
+    hit.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (typeof _isRO === 'function' && _isRO()) return;
+      var before = progress(u).done;
+      u.panelsDone[i] = !u.panelsDone[i];
+      commit(u, before, u.id + ' panel ' + (i + 1) + ' → ' + (u.panelsDone[i] ? 'installed' : 'pending'));
+    });
+  }
+
+  /* Closest point along a path to a screen-space pointer. Sample coarsely, then
+     refine — cheap, and immune to the non-uniform viewBox because every sample is
+     converted to screen coordinates before the distance is measured. */
+  function fracAtPointer(path, ev) {
+    var svg = path.ownerSVGElement;
+    var m = svg.getScreenCTM();
+    if (!m) return 0;
+    var total = path.getTotalLength();
+    if (!total) return 0;
+    function screenDist(l) {
+      var p = path.getPointAtLength(l);
+      var x = m.a * p.x + m.c * p.y + m.e, y = m.b * p.x + m.d * p.y + m.f;
+      var dx = x - ev.clientX, dy = y - ev.clientY;
+      return dx * dx + dy * dy;
+    }
+    var best = 0, bestD = Infinity, N = 160, i;
+    for (i = 0; i <= N; i++) {
+      var l = total * i / N, dd = screenDist(l);
+      if (dd < bestD) { bestD = dd; best = l; }
+    }
+    var step = total / N;
+    for (var pass = 0; pass < 3; pass++) {
+      step /= 4;
+      [best - step, best + step].forEach(function (l) {
+        if (l < 0 || l > total) return;
+        var dd = screenDist(l);
+        if (dd < bestD) { bestD = dd; best = l; }
+      });
+    }
+    return Math.max(0, Math.min(1, best / total));
+  }
+
+  function startDrag(ev, u, i, fillPath, hitPath) {
+    if (typeof _isRO === 'function' && _isRO()) return;
+    // Leave the core position-editing tools alone if someone has them switched on.
+    var em = document.getElementById('editPositionMode');
+    if (em && em.checked) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    _drag = {
+      u: u, i: i, fill: fillPath, hit: hitPath,
+      before: progress(u).done, startX: ev.clientX, startY: ev.clientY, moved: false,
+      orig: runDone(u, i)
+    };
+    try { hitPath.setPointerCapture(ev.pointerId); } catch (e) {}
+    document.body.classList.add('lf-dragging');
+  }
+
+  function onDragMove(ev) {
+    if (!_drag) return;
+    if (Math.abs(ev.clientX - _drag.startX) > 3 || Math.abs(ev.clientY - _drag.startY) > 3) _drag.moved = true;
+    if (!_drag.moved) return;
+    var run = _drag.u.runs[_drag.i];
+    var frac = fracAtPointer(_drag.fill, ev);
+    _drag.u.runsDone[_drag.i] = Math.round(frac * run.lf * 100) / 100;
+    _drag.fill.setAttribute('stroke-dasharray', frac + ' 1');
+    showDragHint(_drag.u, _drag.i, frac);
+  }
+
+  function onDragEnd(ev) {
+    if (!_drag) return;
+    var d = _drag; _drag = null;
+    document.body.classList.remove('lf-dragging');
+    hideDragHint();
+    if (!d.moved) {                       // a click, not a drag → open the row
+      d.u.runsDone[d.i] = d.orig;
+      if (typeof openUnit === 'function') openUnit(d.u.key);
+      return;
+    }
+    var run = d.u.runs[d.i];
+    commit(d.u, d.before, d.u.id + ' run ' + (d.i + 1) + ' → ' + num(d.u.runsDone[d.i]) + ' / ' + num(run.lf) + ' LF');
+  }
+
+  function showDragHint(u, i, frac) {
+    var el = document.getElementById('lfDragHint');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'lfDragHint';
+      document.body.appendChild(el);
+    }
+    var run = u.runs[i];
+    el.innerHTML = '<b>' + esc(u.id) + '</b> run ' + (i + 1) + '<br>' +
+      '<span class="lf-hint-big">' + num(frac * run.lf) + ' LF</span> / ' + num(run.lf) +
+      ' · ' + Math.round(frac * 100) + '%';
+    el.style.display = 'block';
+  }
+  function hideDragHint() {
+    var el = document.getElementById('lfDragHint');
+    if (el) el.style.display = 'none';
+  }
+
+  /* ==========================================================================
+     UNIT MODAL — the same edit, for anyone who'd rather type than drag
+     ========================================================================== */
+  function current() {
+    if (typeof editingUnitId === 'undefined' || !editingUnitId) return null;
+    return unitByKey(editingUnitId);
+  }
+  function modalBox() {
+    var panel = document.getElementById('panel-cal');
+    if (!panel) return null;
+    var box = document.getElementById('lf-box');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'lf-box';
+      box.className = 'lf-box';
+      panel.insertBefore(box, panel.firstChild);
+    }
+    return box;
+  }
+  function seedModal() {
+    var u = current(); if (!u) return;
+    var box = modalBox(); if (!box) return;
+    var p = progress(u);
+    var head = '<div class="lf-box-head"><span><b>' + num(p.total) + ' ' + p.unit + '</b> scope · ' +
+      esc(u.type || '') + '</span><span>' + (u.sheet ? '📄 ' + esc(u.sheet) : '') + '</span></div>';
+
+    if (isRun(u)) {
+      box.innerHTML = head +
+        '<div class="lf-runs-list">' + u.runs.map(function (r, i) {
+          var done = runDone(u, i);
+          return '<div class="lf-run-row" data-i="' + i + '">' +
+            '<span class="lf-run-name">Run ' + (i + 1) + '<em>' + esc(r.label) + '</em></span>' +
+            '<input type="range" min="0" max="' + r.lf + '" step="0.25" value="' + done + '" class="lf-slider">' +
+            '<input type="number" min="0" max="' + r.lf + '" step="0.25" value="' + done + '" class="lf-numin">' +
+            '<span class="lf-run-of">/ ' + num(r.lf) + ' LF</span>' +
+            '<span class="lf-run-pct">' + pct(done, r.lf) + '%</span>' +
+            '</div>';
+        }).join('') + '</div>' +
+        '<div class="lf-box-foot"><button type="button" class="btn btn-sm" id="lf-all">All done</button>' +
+        '<button type="button" class="btn btn-sm" id="lf-none">None</button>' +
+        '<span class="lf-pct" id="lf-pct">' + p.pctv + '%</span></div>' +
+        '<div class="lf-hint">Or drag straight along the run on the plan. Status follows the feet: ' +
+        '0 = Pending · partial = Ready · full = Installed. An <b>Issue</b> status is never overwritten.</div>';
+      box.querySelectorAll('.lf-run-row').forEach(function (row) {
+        var i = +row.dataset.i;
+        var sl = row.querySelector('.lf-slider'), nu = row.querySelector('.lf-numin');
+        sl.addEventListener('input', function () { nu.value = sl.value; paintModal(); });
+        nu.addEventListener('input', function () { sl.value = nu.value; paintModal(); });
+      });
+      box.querySelector('#lf-all').addEventListener('click', function () {
+        box.querySelectorAll('.lf-run-row').forEach(function (row) {
+          var i = +row.dataset.i;
+          row.querySelector('.lf-slider').value = u.runs[i].lf;
+          row.querySelector('.lf-numin').value = u.runs[i].lf;
+        });
+        paintModal();
+      });
+      box.querySelector('#lf-none').addEventListener('click', function () {
+        box.querySelectorAll('.lf-slider,.lf-numin').forEach(function (el) { el.value = 0; });
+        paintModal();
+      });
+    } else if (isTD(u)) {
+      box.innerHTML = head +
+        '<div class="lf-panels">' + u.panels.map(function (p2, i) {
+          var on = !!(u.panelsDone || [])[i];
+          return '<label class="lf-panel-chip' + (on ? ' on' : '') + '">' +
+            '<input type="checkbox" data-i="' + i + '"' + (on ? ' checked' : '') + '>' +
+            '<span>' + (i + 1) + '</span><em>' + esc(p2.label) + '</em></label>';
+        }).join('') + '</div>' +
+        '<div class="lf-box-foot"><button type="button" class="btn btn-sm" id="lf-all">All in</button>' +
+        '<button type="button" class="btn btn-sm" id="lf-none">None</button>' +
+        '<span class="lf-pct" id="lf-pct">' + p.pctv + '%</span></div>' +
+        '<div class="lf-hint">Dividers are tracked as whole panels — no part-panels. ' +
+        'You can also click a panel straight on the plan.</div>';
+      box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
+        c.addEventListener('change', function () {
+          c.closest('.lf-panel-chip').classList.toggle('on', c.checked); paintModal();
+        });
+      });
+      box.querySelector('#lf-all').addEventListener('click', function () {
+        box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
+          c.checked = true; c.closest('.lf-panel-chip').classList.add('on');
+        });
+        paintModal();
+      });
+      box.querySelector('#lf-none').addEventListener('click', function () {
+        box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
+          c.checked = false; c.closest('.lf-panel-chip').classList.remove('on');
+        });
+        paintModal();
+      });
+    } else {
+      box.innerHTML = '';
+    }
+    paintModal();
+  }
+  function readModal(u) {
+    var box = document.getElementById('lf-box');
+    if (!box || !u) return null;
+    if (isRun(u)) {
+      var vals = [];
+      box.querySelectorAll('.lf-run-row').forEach(function (row) {
+        var i = +row.dataset.i, v = parseFloat(row.querySelector('.lf-numin').value);
+        if (!isFinite(v) || v < 0) v = 0;
+        vals[i] = Math.min(v, u.runs[i].lf);
+      });
+      return { done: vals.reduce(function (a, b) { return a + (b || 0); }, 0), runs: vals };
+    }
+    if (isTD(u)) {
+      var flags = [];
+      box.querySelectorAll('.lf-panel-chip input').forEach(function (c) { flags[+c.dataset.i] = c.checked; });
+      return { done: flags.filter(Boolean).length, panels: flags };
+    }
+    return null;
+  }
+  function paintModal() {
+    var u = current(); if (!u) return;
+    var r = readModal(u); if (!r) return;
+    var total = isRun(u) ? lfOf(u) : u.panels.length;
+    var el = document.getElementById('lf-pct');
+    if (el) el.textContent = pct(r.done, total) + '%';
+    if (isRun(u)) {
+      document.querySelectorAll('#lf-box .lf-run-row').forEach(function (row) {
+        var i = +row.dataset.i;
+        row.querySelector('.lf-run-pct').textContent = pct(r.runs[i] || 0, u.runs[i].lf) + '%';
+      });
+    }
+  }
+  function applyModal(u) {
+    var r = readModal(u);
+    if (!r) return;
+    if (isRun(u)) u.runsDone = r.runs.map(function (v) { return Math.round((v || 0) * 100) / 100; });
+    if (isTD(u)) u.panelsDone = r.panels.map(Boolean);
+    if (isRun(u)) u.lfDone = Math.round(grDone(u) * 100) / 100;
+    // Hand the derived status to core through the Calendar tab's Frame row, which
+    // saveUnit() mirrors into u.status / u.date.
+    var row = document.querySelector('#cal-rows .cal-row[data-scope="frame"]');
+    if (!row) return;
+    var sel = row.querySelector('.cal-status'), dateEl = row.querySelector('.cal-date');
+    if (!sel || sel.value === 'issue') return;
+    var want = deriveStatus(u);
+    sel.value = want;
+    if (dateEl) {
+      if (want === 'pending') dateEl.value = '';
+      else if (!dateEl.value) dateEl.value = today();
+    }
+  }
+
+  /* ======================================================= trend + drill-down */
+  function rebuildTrend() {
+    var canvas = document.getElementById('trendChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (typeof state === 'undefined' || !state || !Array.isArray(state.log)) return;
+    var byDate = {};
+    state.log.forEach(function (l) {
+      if (!l || l.lfEntry !== true) return;
+      var delta = (Number(l.to) || 0) - (Number(l.from) || 0);
+      if (!delta) return;
+      var u = unitByKey(l.unitKey);
+      var k = (u && isTD(u)) ? 'td' : (u && isES(u)) ? 'es' : 'gr';
+      if (!byDate[l.date]) byDate[l.date] = { gr: 0, td: 0, es: 0 };
+      byDate[l.date][k] += delta;
+    });
+    var dates = Object.keys(byDate).sort();
+    if (typeof trendChart !== 'undefined' && trendChart) { trendChart.destroy(); trendChart = null; }
+    // A theme may set these; core's helpers only know day vs night.
+    var tick = cssVar('--chart-tick', (typeof chartTickColor === 'function') ? chartTickColor() : '#8b949e');
+    var grid = cssVar('--chart-grid', (typeof chartGridColor === 'function') ? chartGridColor() : 'rgba(127,127,127,.2)');
+    var fmt = (typeof formatDate === 'function') ? formatDate : function (d) { return d; };
+    trendChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: dates.map(fmt),
+        datasets: [
+          { label: 'Guardrail LF', yAxisID: 'y', backgroundColor: grColor(),
+            data: dates.map(function (d) { return Math.round(byDate[d].gr * 100) / 100; }) },
+          // Screens are booked in feet too, so they share the guardrail axis.
+          { label: 'Screen LF', yAxisID: 'y', backgroundColor: esColor(),
+            data: dates.map(function (d) { return Math.round(byDate[d].es * 100) / 100; }) },
+          // Panels are a different unit from feet, so they get their own axis rather
+          // than being stacked into a number that means nothing.
+          { label: 'Divider panels', yAxisID: 'y2', backgroundColor: tdColor(),
+            data: dates.map(function (d) { return Math.round(byDate[d].td); }) }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function (c) {
+            return c.dataset.label + ': ' + num(c.parsed.y) +
+              (c.dataset.yAxisID === 'y2' ? ' panels' : ' LF');
+          } } }
+        },
+        scales: {
+          x: { ticks: { color: tick }, grid: { color: grid } },
+          y: { position: 'left', beginAtZero: true, ticks: { color: tick }, grid: { color: grid },
+               title: { display: true, text: 'Guardrail + Screen LF', color: tick } },
+          y2: { position: 'right', beginAtZero: true, ticks: { color: tick, stepSize: 1 },
+                grid: { drawOnChartArea: false },
+                title: { display: true, text: 'Divider panels', color: tick } }
+        }
+      }
+    });
+  }
+
+  /* Core builds the status donut with its own hardcoded slice colours (they only know
+     day vs night), which looks imported-from-another-app under a themed palette. Rather
+     than rebuild the chart — and lose core's custom tooltip that lists the issue units —
+     recolour it in place and update. */
+  function reskinDonut() {
+    if (typeof donutChart === 'undefined' || !donutChart) return;
+    var ds = donutChart.data && donutChart.data.datasets && donutChart.data.datasets[0];
+    if (!ds) return;
+    ds.backgroundColor = [
+      cssVar('--green', '#3fb950'),
+      cssVar('--yellow', '#d29922'),
+      cssVar('--red', '#f85149'),
+      cssVar('--text-dim', '#4d5764')
+    ];
+    ds.borderColor = cssVar('--panel', '#1a2028');
+    /* Only ever assign a LEAF value inside chart.options. Chart.js wraps options in a
+       resolver proxy, so a read-then-write of a whole branch — `lg.labels = lg.labels || {}`
+       — hands the proxy's getter back to its own setter and recurses until the stack dies
+       ("Maximum call stack size exceeded" out of Chart.js, thousands deep). */
+    try { donutChart.options.plugins.legend.labels.color = cssVar('--text-dim', '#8b949e'); }
+    catch (e) {}
+    try { donutChart.update('none'); } catch (e) { try { donutChart.update(); } catch (e2) {} }
+  }
+
+  function openDetail(kind) {
+    var list = kind === 'guardrail' ? grUnits() : kind === 'divider' ? tdUnits()
+             : kind === 'screen' ? esUnits() : units();
+    var title = kind === 'guardrail' ? 'Guardrail — by floor'
+              : kind === 'divider' ? 'Terrace Divider — by floor'
+              : kind === 'screen' ? 'Equipment Screen — by floor' : 'Every railing row';
+    var modal = document.getElementById('kpiDetailModal');
+    if (!modal) return;
+    var t = sumProgress(list);
+    var titleEl = document.getElementById('kpiDetailTitle');
+    var countEl = document.getElementById('kpiDetailCount');
+    var bodyEl = document.getElementById('kpiDetailBody');
+    if (titleEl) titleEl.textContent = title;
+    if (countEl) countEl.textContent = pct(t.done, t.total) + '%';
+    if (!bodyEl) return;
+    bodyEl.innerHTML = !list.length ? '<div class="kpi-detail-empty">Nothing here yet.</div>' :
+      '<table class="kpi-detail-table"><thead><tr>' +
+      '<th>Row</th><th>Floor</th><th>Scope</th><th>Complete</th><th>%</th><th>Pieces</th><th>Sheet</th>' +
+      '</tr></thead><tbody>' +
+      list.map(function (u) {
+        var p = progress(u);
+        var f = (typeof getFloors === 'function') ? getFloors().find(function (x) { return x.key === u.level; }) : null;
+        return '<tr><td><strong>' + esc(u.id) + '</strong></td>' +
+          '<td>' + esc(f && typeof floorLabel === 'function' ? floorLabel(f) : (u.level || '')) + '</td>' +
+          '<td>' + num(p.total) + ' ' + p.unit + '</td>' +
+          '<td>' + num(p.done) + '</td>' +
+          '<td>' + p.pctv + '%</td>' +
+          '<td>' + (isRun(u) ? u.runs.length + (isES(u) ? ' faces' : ' runs')
+                              : u.panels.length + ' panels') + '</td>' +
+          '<td style="color:var(--text-dim);font-size:11px">' + esc(u.sheet || '') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    modal.classList.add('show');
+  }
+
+  // ------------------------------------------------------------------- styles
+  function injectCss() {
+    if (document.getElementById('lf-css')) return;
+    var s = document.createElement('style');
+    s.id = 'lf-css';
+    s.textContent = [
+      /* plan overlay */
+      '#lfOverlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}',
+      '#lfOverlay path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}',
+      '#lfOverlay .lf-track{stroke:rgba(140,150,165,.55);stroke-width:7}',
+      '#lfOverlay .lf-track-td{stroke:rgba(140,150,165,.4);stroke-width:6}',
+      '#lfOverlay .lf-fill{stroke-width:7;transition:stroke-dasharray .08s linear}',
+      '#lfOverlay .lf-panel{stroke-width:6}',
+      '#lfOverlay .lf-hit{stroke:transparent;stroke-width:22;pointer-events:stroke;cursor:pointer}',
+      '#lfOverlay .lf-run-g:hover .lf-track{stroke:rgba(180,190,205,.8)}',
+      '#lfOverlay .lf-run-g:hover .lf-fill{filter:drop-shadow(0 0 4px currentColor)}',
+      '#lfOverlay .lf-knob{stroke:#0d1117;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none}',
+      'body.day-mode #lfOverlay .lf-knob{stroke:#fff}',
+      'body.lf-dragging{user-select:none}',
+      'body.lf-dragging #lfOverlay .lf-hit{cursor:grabbing}',
+      /* the railing IS the marker here — core's dots would just sit on top */
+      'body.lf-geo .plan-marker{display:none!important}',
+      '#lfDragHint{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;display:none;' +
+        'background:var(--card,#161b22);border:1px solid var(--border,#30363d);border-radius:8px;' +
+        'padding:8px 14px;font-size:12px;color:var(--text,#e6edf3);box-shadow:0 6px 24px rgba(0,0,0,.45);text-align:center}',
+      '#lfDragHint .lf-hint-big{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}',
+      /* rollup table */
+      '.lf-table{width:100%;border-collapse:collapse;font-size:13px}',
+      '.lf-table th,.lf-table td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left}',
+      '.lf-table th{font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);font-weight:600}',
+      '.lf-table td.lf-n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}',
+      '.lf-table td.lf-b{width:22%}',
+      '.lf-table .lf-strong{font-weight:700}',
+      '.lf-table tr.lf-total td{border-top:2px solid var(--border);font-weight:700;background:rgba(127,127,127,.06)}',
+      '.lf-bar{display:block;height:7px;border-radius:4px;background:rgba(127,127,127,.22);overflow:hidden;min-width:60px}',
+      '.lf-bar>span{display:block;height:100%;border-radius:4px;transition:width .18s ease}',
+      /* unit modal */
+      '.lf-box{border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;background:rgba(127,127,127,.05)}',
+      '.lf-box-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--text-dim);margin-bottom:10px;flex-wrap:wrap}',
+      '.lf-run-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}',
+      '.lf-run-name{min-width:112px;font-size:12px}',
+      '.lf-run-name em{display:block;font-style:normal;color:var(--text-dim);font-size:11px;font-variant-numeric:tabular-nums}',
+      '.lf-slider{flex:1;min-width:90px;accent-color:var(--rail-gr)}',
+      '.lf-numin{width:82px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:13px}',
+      '.lf-run-of{font-size:11px;color:var(--text-dim);min-width:64px;font-variant-numeric:tabular-nums}',
+      '.lf-run-pct{font-size:12px;font-weight:600;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}',
+      '.lf-panels{display:flex;flex-wrap:wrap;gap:6px}',
+      '.lf-panel-chip{display:flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px}',
+      '.lf-panel-chip.on{border-color:var(--rail-td);background:color-mix(in srgb, var(--rail-td) 16%, transparent)}',
+      '.lf-panel-chip em{font-style:normal;color:var(--text-dim);font-size:11px;font-variant-numeric:tabular-nums}',
+      '.lf-box-foot{display:flex;align-items:center;gap:8px;margin-top:10px}',
+      '.lf-pct{margin-left:auto;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}',
+      '.lf-hint{margin-top:9px;font-size:11px;color:var(--text-dim);line-height:1.5}',
+      /* core writes the legend swatch colour as an inline --ut-color from its own fixed
+         palette (mint/violet), which then disagrees with a themed overlay. An !important
+         author declaration outranks an inline non-important one, so the legend follows the
+         same two variables the plan does — in any theme. */
+      '.legend-item[data-ut="guardrail"] .ut-swatch{--ut-color:var(--rail-gr)!important}',
+      '.legend-item[data-ut="divider"] .ut-swatch{--ut-color:var(--rail-td)!important}',
+      '.legend-item[data-ut="screen"] .ut-swatch{--ut-color:var(--rail-es)!important}',
+      '#lfBuild{margin-left:auto;font-size:10px;color:var(--text-dim);opacity:.65;font-variant-numeric:tabular-nums}',
+      '#lfWarn{display:none;margin:0 0 10px;padding:9px 12px;border-radius:8px;font-size:12.5px;' +
+        'background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.5);color:var(--text)}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  // -------------------------------------------------------------- wire into core
+  function refresh() {
+    stampBuild();
+    baselineSync();
+    paintCards();
+    paintByFloor();
+    if (window.PROJECT && PROJECT.hidePlanMarkers) {
+      document.body.classList.add('lf-geo');
+      hideMarkerTools();
+    }
+  }
+
+  /* With no dot markers there is nothing to place or drag into position, so core's
+     marker tools would only invite confusion. Hidden rather than deleted: core still
+     reads #editPositionMode, and lf.js checks it too so that if it is ever switched
+     back on, dragging the plan stops fighting it. */
+  function hideMarkerTools() {
+    var pb = document.getElementById('placeBtn');
+    if (pb) pb.style.display = 'none';
+    var em = document.getElementById('editPositionMode');
+    if (em && em.closest('.mode-toggle')) em.closest('.mode-toggle').style.display = 'none';
+  }
+
+  function wrap(name, before, after) {
+    var orig = window[name];
+    if (typeof orig !== 'function') { console.warn('[lf] core function missing:', name); return; }
+    window[name] = function () {
+      if (before) { try { before.apply(null, arguments); } catch (e) { console.error('[lf] pre-' + name, e); } }
+      var out = orig.apply(this, arguments);
+      if (after) { try { after.apply(null, arguments); } catch (e) { console.error('[lf] post-' + name, e); } }
+      return out;
+    };
+  }
+
+  wrap('renderKPIs', null, refresh);
+  wrap('renderPlan', null, renderOverlay);
+  /* Re-entrancy guard: rebuildTrend() constructs a Chart, and a Chart construct/update
+     can trigger a resize which some code paths answer by re-rendering the charts. Without
+     the latch that becomes a loop that only shows up as a stack overflow. */
+  var _inCharts = false;
+  wrap('renderCharts', null, function () {
+    if (_inCharts) return;
+    _inCharts = true;
+    try { rebuildTrend(); reskinDonut(); } finally { _inCharts = false; }
+  });
+  wrap('openUnit', null, function () { if (document.getElementById('panel-cal')) seedModal(); });
+  wrap('saveUnit', function () { var u = current(); if (u) applyModal(u); }, function () {
+    var u = current(); if (u && isRun(u)) u.lfDone = Math.round(grDone(u) * 100) / 100;
+  });
+  wrap('renderCalendar', null, function () {
+    document.querySelectorAll('#cal-rows .cal-row').forEach(function (r) {
+      if (HIDDEN_SCOPES.indexOf(r.dataset.scope) >= 0) r.remove();
+    });
+  });
+  /* The Openings lens is storefront language (rough openings the GC prepares). A
+     railing run has no opening, so the tab goes — Progress and Issues are the two
+     that mean something here. */
+  wrap('renderPlanLensBar', null, function () {
+    var bar2 = document.getElementById('planLensBar');
+    if (!bar2) return;
+    bar2.querySelectorAll('.lens-btn').forEach(function (b) {
+      if (/setPlanLens\('openings'\)/.test(b.getAttribute('onclick') || '')) b.remove();
+    });
+  });
+
+  document.addEventListener('pointermove', onDragMove, { passive: true });
+  document.addEventListener('pointerup', onDragEnd);
+  document.addEventListener('pointercancel', onDragEnd);
+
+  injectCss();
+  console.log('[lf] 355 Lexington railing module ' + BUILD + ' loaded');
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { refresh(); renderOverlay(); });
+  } else { refresh(); renderOverlay(); }
+
+  window.LF = {
+    build: BUILD, refresh: refresh, reskinDonut: reskinDonut, renderOverlay: renderOverlay, openDetail: openDetail,
+    progress: progress, sumProgress: sumProgress, isGR: isGR, isTD: isTD, isES: isES, isRun: isRun,
+    grDone: grDone, tdDone: tdDone, pct: pct, commit: commit, seedModal: seedModal,
+    applyModal: applyModal, deriveStatus: deriveStatus, fracAtPointer: fracAtPointer
+  };
+})();

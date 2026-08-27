@@ -1,0 +1,7 @@
+{
+  "name": "lex355-railing-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "355 Lexington Avenue railing install tracker — static site + /api/parse serverless function"
+}

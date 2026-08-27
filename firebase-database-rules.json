@@ -1,0 +1,110 @@
+{
+  "rules": {
+    // ---------- 全局默认：拒绝 ----------
+    ".read":  false,
+    ".write": false,
+
+    // ---------- 业务数据：state（项目状态） ----------
+    // 读：任何登录用户（包括非 editor，用来给主 tracker 和 chat 看数据）
+    // 写：仅 allowlist 内的 editor
+    "state": {
+      ".read":  "auth != null",
+      ".write": "auth != null && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+      ".validate": "newData.hasChildren(['_clientId', '_ts', '_by'])"
+    },
+
+    // ---------- 周五到货调度 (Friday glass delivery triage) ----------
+    // 读：任何登录用户
+    // 写：仅 editor。每件玻璃存在 /triage/{deliveryId}/pieces/{tagKey}
+    "triage": {
+      ".read":  "auth != null",
+      "$deliveryId": {
+        "pieces": {
+          ".write": "auth != null && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+          "$tagKey": {
+            ".validate": "newData.hasChild('status')"
+          }
+        },
+        "meta": {
+          ".write": "auth != null && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()"
+        }
+      }
+    },
+
+    // ---------- 仓库 (Warehouse — Stage 1: Receive) ----------
+    // 读：任何登录用户
+    // 写 / 改 / 删：任何 editor（小团队信任模型，任何人都能改/删任何条）
+    //   - 创建：必须带 4 个必填字段
+    //   - 更新：同上（receivedBy 不强制等于当前 user，允许 A 修正 B 录入的条）
+    //   - 删除：write=null 时 validate 不跑，自动允许
+    //   ⇒ Stage 2 上线"出货"时会另开 warehouse/shipments 子树存出货事件
+    "warehouse": {
+      ".read": "auth != null",
+      "items": {
+        ".indexOn": ["receivedAt"],
+        "$itemId": {
+          ".write": "auth != null && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+          ".validate": "newData.hasChildren(['where','receivedAt','receivedBy','status']) && newData.child('status').val() == 'in_stock'"
+        }
+      }
+    },
+
+    // ---------- 编辑历史 ----------
+    // 读：任何登录用户
+    // 写（追加）：仅 editor，且 user 字段必须等于自己的邮箱
+    "history": {
+      ".read": "auth != null",
+      "$pushId": {
+        ".write": "auth != null && !data.exists() && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+        ".validate": "newData.hasChildren(['ts','user','desc']) && newData.child('user').val() == auth.token.email"
+      }
+    },
+
+    // ---------- 在线状态 ----------
+    // 读：任何登录用户
+    // 写：仅 editor 且只能写自己那条
+    "presence": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+        ".validate": "newData.hasChildren(['email','since']) && newData.child('email').val() == auth.token.email"
+      }
+    },
+
+    // ---------- 访问日志 (F-033 pilot: opens tracking) ----------
+    // 写（追加）：任何登录用户（包括非 editor 的 GC 只读账号），只能写自己那条，不能改历史
+    // 读：仅 editor（避免把所有访客邮箱暴露给普通登录用户）
+    "access": {
+      ".read": "auth != null && root.child('allowlist').child(auth.token.email.replace('.', ',')).exists()",
+      "$id": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.hasChildren(['email','ts']) && newData.child('email').val() == auth.token.email"
+      }
+    },
+
+    // ---------- GC 收件箱 (F-037: GC 提问 / 回复) ----------
+    // /state 永远只有 editor 能写；GC（非 allowlist）要提事项就写这里。
+    // 读：任何登录用户（GC 也要能看到自己提交的条目落地了）
+    // 创建：任何登录用户，但 by 必须等于自己的邮箱（防冒名）
+    // 修改/删除：仅 editor（triage：merge 进 thread 后标 handled，或清掉）
+    "gcItems": {
+      ".read": "auth != null",
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && (!data.exists() || root.child('allowlist').child(auth.token.email.replace('.', ',')).exists())",
+        ".validate": "newData.hasChildren(['by','ts','text']) && (data.exists() || newData.child('by').val() == auth.token.email)"
+      }
+    },
+
+    // ---------- 白名单本身 ----------
+    // 整体不可读（防止枚举所有 editor 邮箱）
+    // 但允许登录用户读自己那条（用来判断当前账号是不是 editor）
+    "allowlist": {
+      ".read":  false,
+      ".write": false,
+      "$emailKey": {
+        ".read": "auth != null && auth.token.email.replace('.', ',') == $emailKey"
+      }
+    }
+  }
+}
