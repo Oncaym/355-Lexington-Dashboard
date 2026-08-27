@@ -41,6 +41,50 @@ Leo 2026-08-27 把 26、27 层机房屋面的 **mechanical screen** 加进合同
 52 块。高度就是板表的 90" / 168"，也顺带把那份 PDF 的 lot-line 立面上 16'-0" 的疑问了结了。
 每一面的板数写在 label 里（`South · 50'-4" · 10w×2h`）—— 哪天想改成按块计量，数字已经在里面了。
 
+## 从 CP2 克隆过来时丢掉的东西（2026-08-27 补回）
+
+这类 bug 有一个共同点：**HTML 里没有的区块，渲染出来就是"什么都没有"**，不报错、不留痕。
+所以下面两条都是靠人眼发现的，现在各自补了测试。
+
+1. **Warehouse 页面**：`_build/rebrand.py` 在克隆时删掉了 header 里的
+   `<a href="warehouse.html">`（注释写的是 "drop CP2-only header pages"）。所以就算后来把
+   `warehouse.html` 拷进文件夹，页面上也没有入口。链接已补回，页面标题也改成本项目。
+   这页是 **PROJECT 文件**（不是 core），且**依赖 Firebase**（它无条件 `initializeApp`）。
+2. **Submittal Log**：背后所有函数（`renderSubmittals`、逐审核方 ball-in-court 矩阵、拖拽排序）
+   一直都在 `app.js` 里 —— 和 AC3 **字节相同**。缺的只有 HTML：AC3 加的
+   F-031 / F-032 / F-053 / F-054 那一块，CP2 的 `index.html` 从来没同步过，这个 tracker
+   就继承了这个洞。现在**逐字**从 AC3 复制过来（section + modal + CSS），以后 core 同步不打架。
+   审核方名单是项目数据 `PROJECT.submittalReviewers`，本项目**还是空的** —— core 空就不预填，
+   这是对的；名单定了填进 `_build/write_config.py` 重跑即可。
+
+**教训**：`index.html` 是 hybrid 文件，core 的部分不会自动跟着 `app.js` 走。
+`app.js` 里出现的新函数，要回头确认这个 tracker 的 `index.html` 有没有对应的挂载点。
+
+## 隔板：一块一条 row（Leo 2026-08-27）
+
+Leo 原话："点一下变颜色有什么用 —— 我要记录 installation date, field verify and rfi"。
+以前隔板是**一层一条**、每块一个布尔，点一下只翻个颜色，什么都没记下来。
+
+而现场真正要写的东西 —— 日期、Field Verify 实测、RFI、Issue、照片、每日日志 ——
+在 core `app.js` 里**全部挂在一条 row 上**。所以每块隔板现在就是一条 row，
+上面那些一行新 UI 都不用写就全有了。平面图上点哪块就开哪块自己那条；
+**row 的 status 才是真相**，`panelsDone` 只是跟着走（`baselineSync` 里派生），
+让平面图颜色和 KPI 只读一个数。
+
+护栏段和屏体面**故意不拆** —— 那是拖尺数的长度，没人要求拆。
+
+线上数据靠 `split-divider-panels-2026-08` 迁移搬家。注意它跑在 **seed 合并之前**
+（`mergeSeedUnits` 第一行就调 `runStateMigrations`），所以新 row 还不存在，
+迁移必须自己从 `PROJECT.seedUnits` 造出来 —— 它也必须排在 `purge-foreign-state` **前面**，
+否则老的 `TD\d\d` 行会被当成外来数据连同已录的进度一起清掉。
+
+## 底图 / plan sheet（Leo 2026-08-27）
+
+底图是**背景**，不是内容：每个楼层 tab 一眼应该只看到我们的活。
+`.plan-img` 用 `opacity: var(--plan-dim)` —— 夜间 0.35、日间 0.4（黑线白底掉得更快），
+`lf.js` 的描边同步加粗到 9px。overlay 是独立 SVG，不受影响，永远满强度。要读图就放大。
+调淡/调亮改 `index.html` 里 `:root` / `body.day-mode` 的 `--plan-dim`，主题也可以覆盖它。
+
 ## 红线规则（踩过的坑，别再踩）
 
 1. **`firebase-config.js` 只能填这栋楼自己的 Firebase 项目。**
@@ -79,6 +123,21 @@ Leo 2026-08-27 把 26、27 层机房屋面的 **mechanical screen** 加进合同
    `python3 _build/make_plans.py L26 L27`，其余楼层的图和记录的尺寸原样不动。
    注意它跑完会把 `markups.json` 里的 `size` 改写成实际出图尺寸 —— 所以顺序永远是
    extract → write_config → make_plans，反了会让 `planSize` 混着两种口径。
+9. **平面图上任何要响应手指的东西，必须自己吞掉 `pointerdown`。**
+   `app.js` 的平面图平移在 `#planViewport` 的 pointerdown 里无条件 `setPointerCapture()`，
+   指针捕获会把后续所有事件（含 `mouseup`）重定向到 viewport，浏览器再按
+   "mousedown 与 mouseup 的共同祖先"算 `click` 目标 —— 于是**落在图元上的 `click` 永远不会发生**。
+   隔板（divider）就是这么"点不动"的：按下有反应，抬起跑到别处，什么都没发生。
+   护栏拖动一直没事，因为 `startDrag()` 在 pointerdown 里 `stopPropagation()` 了。
+   所以图元一律照 `startDrag()` 的写法：`stopPropagation` + 自己 `setPointerCapture`，
+   在 pointerup 里判定（顺便拿到位移阈值：手机上按在隔板上滑动平移，不能算装了一块）。
+10. **测试不许用 `el.dispatchEvent(new MouseEvent('click'))` 代替真点击。**
+   合成事件同时跳过命中测试和指针捕获 —— 上面那个 bug 存在了很久，而"点击隔板"那条测试
+   一直是绿的，就是因为它是合成派发的。平面图上的交互一律走 `page.mouse.*`。
+11. **Firebase 已上线（2026-08-27，项目 `lexington-avenue-93a52`）**，云端从此是唯一真相源。
+   **测试永远不许碰它** —— `smoke-browser.cjs` 的本地服务器拦掉 `/firebase-config.js` 喂一份
+   空 config，逼页面跑 LOCAL 模式，免得测试的假进度写进生产库；真文件由 `test-lf.cjs`
+   在磁盘上校验，里面只要出现别的楼的项目名就当场失败（这条规则的由来见下面 CP2 事故）。
 
 ## 架构 / File map
 
@@ -97,7 +156,8 @@ Leo 2026-08-27 把 26、27 层机房屋面的 **mechanical screen** 加进合同
 
 ## 数据模型 / Data model
 
-每条 unit = **一层 × 一个类别**（17 条：GR08…GR26 八条、TD08…TD21 七条、ES26 / ES27 两条）。
+每条 unit：护栏和设备屏 = **一层 × 一个类别**（GR08…GR26 八条、ES26 / ES27 两条），
+隔板 = **一块一条**（`TD12P07` = 12 层第 7 块，显示 `TD-12.7`），共 43 条。
 护栏 1201.52 LF + 隔板 270.01 LF + 设备屏 182.33 LF = 1653.86 LF。
 
 ```js

@@ -54,6 +54,13 @@ return {
 
   doorPatterns: [],
   interiorPatterns: [],
+
+  /* Submittal ball-in-court reviewers — the Procore review chain, in FIXED order. Seeded
+     into every new submittal and every new revision, always hand-editable per row. Core
+     app.js never hardcodes names; an empty list just means nothing is pre-filled, which is
+     the right behaviour until the chain for this job is known. Fill it in here (and re-run
+     _build/write_config.py) — e.g. ['Rudin', 'Hill West Architects', <GC>]. */
+  submittalReviewers: [],
   scopeKpis: [],
   ringScopes: [],
   requirePlacedMarkers: false,
@@ -104,6 +111,58 @@ return {
   /* One-time state repairs. Each runs once per browser / cloud database — the id is
      recorded in state.migrations[] — so it can fix live data that no seed edit reaches. */
   migrations: [
+    {
+      id: 'split-divider-panels-2026-08',
+      note: "Terrace dividers used to be ONE ROW PER FLOOR carrying a boolean per panel: " +
+            "clicking a panel flipped a colour, and that was the entire record. Leo " +
+            "2026-08-27: each panel needs its own installation date, Field Verify and RFI " +
+            "— all of which already hang off a row in core app.js. So each panel is now its " +
+            "own row (TD12P03 = 12th floor, panel 3). This runs BEFORE the seed merge, so it " +
+            "has to build the new rows itself out of PROJECT.seedUnits rather than wait for " +
+            "them; whatever was already booked on a floor row is carried onto the right " +
+            "panel row, and the floor rows and their log entries go.",
+      apply(state) {
+        var units = Array.isArray(state.units) ? state.units : [];
+        var old = units.filter(function (u) { return u && /^TD\d\d$/.test(u.key); });
+        if (!old.length) return 'no floor-level divider rows here';
+
+        var seeds = {};
+        (window.PROJECT.seedUnits || []).forEach(function (s) { seeds[s.key] = s; });
+        var have = {};
+        units.forEach(function (u) { if (u) have[u.key] = 1; });
+
+        var carried = 0;
+        old.forEach(function (o) {
+          var n = (o.panels && o.panels.length) || (o.panelsDone || []).length;
+          for (var j = 0; j < n; j++) {
+            var k = o.key + 'P' + (j + 1 < 10 ? '0' : '') + (j + 1);
+            var seed = seeds[k];
+            if (!seed || have[k]) continue;
+            var row = JSON.parse(JSON.stringify(seed));
+            if ((o.panelsDone || [])[j]) {
+              row.status = 'installed';
+              row.date = o.date || '';
+              row.panelsDone = [true];
+              row.scopes = { frame: { status: 'installed', date: row.date } };
+              carried++;
+            }
+            units.push(row);
+            have[k] = 1;
+          }
+        });
+
+        state.units = units.filter(function (u) { return u && !/^TD\d\d$/.test(u.key); });
+        state.log = (Array.isArray(state.log) ? state.log : []).filter(function (l) {
+          return !(l && /^TD\d\d$/.test(l.unitKey || ''));
+        });
+        var pos = state.positions || {};
+        Object.keys(pos).forEach(function (k) { if (/^TD\d\d$/.test(k)) delete pos[k]; });
+        state.positions = pos;
+
+        return 'split ' + old.length + ' floor row(s) into panel rows · ' + carried +
+          ' panel(s) were already installed and kept their date';
+      }
+    },
     {
       id: 'purge-foreign-state-2026-08',
       note: "This tracker shipped, briefly, with Cooper Park 2's live firebase-config.js. " +
@@ -193,12 +252,18 @@ return {
       runs:[
         { label:"35'-0\"", lf:35.00, pts:[[0.34249,0.52195],[0.65751,0.52195]] }
       ] },
-    { key:'TD08', id:'TD-08', type:'Terrace Divider', zone:'Terrace', level:'L08',
-      status:'pending', date:'', louver:'na', sheet:'A-108.00',
-      lf:10.84, panelsDone:[false,false],
-      note:"8th floor terrace dividers \u00b7 2 panels \u00b7 10.84 LF",
+    { key:'TD08P01', id:'TD-08.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:5.42, panelsDone:[false],
+      note:"8th floor terrace divider \u00b7 panel 1 of 2 \u00b7 5'-5\"",
       panels:[
-        { label:"5'-5\"", lf:5.42, pts:[[0.43491,0.52439],[0.43491,0.47561]] },
+        { label:"5'-5\"", lf:5.42, pts:[[0.43491,0.52439],[0.43491,0.47561]] }
+      ] },
+    { key:'TD08P02', id:'TD-08.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:5.42, panelsDone:[false],
+      note:"8th floor terrace divider \u00b7 panel 2 of 2 \u00b7 5'-5\"",
+      panels:[
         { label:"5'-5\"", lf:5.42, pts:[[0.5258,0.52439],[0.5258,0.47561]] }
       ] },
     { key:'GR10', id:'GR-10', type:'Guardrail', zone:'Terrace', level:'L10',
@@ -209,12 +274,18 @@ return {
         { label:"24'-7\"", lf:24.58, pts:[[0.2743,0.56306],[0.37721,0.56306],[0.48171,0.50744]] },
         { label:"27'-5\"", lf:27.42, pts:[[0.47898,0.50669],[0.7257,0.50669]] }
       ] },
-    { key:'TD10', id:'TD-10', type:'Terrace Divider', zone:'Terrace', level:'L10',
-      status:'pending', date:'', louver:'na', sheet:'A-110.00',
-      lf:15.54, panelsDone:[false,false],
-      note:"10th floor terrace dividers \u00b7 2 panels \u00b7 15.54 LF",
+    { key:'TD10P01', id:'TD-10.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:7.52, panelsDone:[false],
+      note:"10th floor terrace divider \u00b7 panel 1 of 2 \u00b7 7'-6 1/4\"",
       panels:[
-        { label:"7'-6 1/4\"", lf:7.52, pts:[[0.42926,0.53803],[0.42926,0.4704]] },
+        { label:"7'-6 1/4\"", lf:7.52, pts:[[0.42926,0.53803],[0.42926,0.4704]] }
+      ] },
+    { key:'TD10P02', id:'TD-10.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:8.02, panelsDone:[false],
+      note:"10th floor terrace divider \u00b7 panel 2 of 2 \u00b7 8'-1/4\"",
+      panels:[
         { label:"8'-1/4\"", lf:8.02, pts:[[0.59502,0.50922],[0.59502,0.43694]] }
       ] },
     { key:'GR12', id:'GR-12', type:'Guardrail', zone:'Terrace', level:'L12',
@@ -226,21 +297,81 @@ return {
         { label:"22'-5\"", lf:22.42, pts:[[0.63515,0.77941],[0.72037,0.69707]] },
         { label:"45'-5 1/4\"", lf:45.44, pts:[[0.71918,0.6989],[0.71918,0.6681],[0.86765,0.6681],[0.86765,0.6134]] }
       ] },
-    { key:'TD12', id:'TD-12', type:'Terrace Divider', zone:'Terrace', level:'L12',
-      status:'pending', date:'', louver:'na', sheet:'A-112.00',
-      lf:67.01, panelsDone:[false,false,false,false,false,false,false,false,false,false,false],
-      note:"12th floor terrace dividers \u00b7 11 panels \u00b7 67.01 LF",
+    { key:'TD12P01', id:'TD-12.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:6.33, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 1 of 11 \u00b7 6'-4\"",
       panels:[
-        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.30468],[0.16018,0.30468]] },
-        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.45629],[0.16018,0.45629]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.26205,0.73647],[0.26205,0.77945]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.3384,0.73647],[0.3384,0.77945]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.39975,0.73647],[0.39975,0.77945]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.46131,0.73647],[0.46131,0.77945]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.51213,0.73647],[0.51213,0.77945]] },
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.56578,0.73647],[0.56578,0.77945]] },
-        { label:"6'-9\"", lf:6.75, pts:[[0.64972,0.71016],[0.66461,0.75294]] },
-        { label:"4'-4 1/2\"", lf:4.38, pts:[[0.72541,0.63795],[0.72541,0.66999]] },
+        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.30468],[0.16018,0.30468]] }
+      ] },
+    { key:'TD12P02', id:'TD-12.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:6.33, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 2 of 11 \u00b7 6'-4\"",
+      panels:[
+        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.45629],[0.16018,0.45629]] }
+      ] },
+    { key:'TD12P03', id:'TD-12.3', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 3 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.26205,0.73647],[0.26205,0.77945]] }
+      ] },
+    { key:'TD12P04', id:'TD-12.4', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 4 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.3384,0.73647],[0.3384,0.77945]] }
+      ] },
+    { key:'TD12P05', id:'TD-12.5', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 5 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.39975,0.73647],[0.39975,0.77945]] }
+      ] },
+    { key:'TD12P06', id:'TD-12.6', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 6 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.46131,0.73647],[0.46131,0.77945]] }
+      ] },
+    { key:'TD12P07', id:'TD-12.7', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 7 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.51213,0.73647],[0.51213,0.77945]] }
+      ] },
+    { key:'TD12P08', id:'TD-12.8', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:5.88, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 8 of 11 \u00b7 5'-10 1/2\"",
+      panels:[
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.56578,0.73647],[0.56578,0.77945]] }
+      ] },
+    { key:'TD12P09', id:'TD-12.9', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:6.75, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 9 of 11 \u00b7 6'-9\"",
+      panels:[
+        { label:"6'-9\"", lf:6.75, pts:[[0.64972,0.71016],[0.66461,0.75294]] }
+      ] },
+    { key:'TD12P10', id:'TD-12.10', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.38, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 10 of 11 \u00b7 4'-4 1/2\"",
+      panels:[
+        { label:"4'-4 1/2\"", lf:4.38, pts:[[0.72541,0.63795],[0.72541,0.66999]] }
+      ] },
+    { key:'TD12P11', id:'TD-12.11', type:'Terrace Divider',
+      zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:7.94, panelsDone:[false],
+      note:"12th floor terrace divider \u00b7 panel 11 of 11 \u00b7 7'-11 1/4\"",
+      panels:[
         { label:"7'-11 1/4\"", lf:7.94, pts:[[0.80575,0.61177],[0.80575,0.66992]] }
       ] },
     { key:'GR14', id:'GR-14', type:'Guardrail', zone:'Terrace', level:'L14',
@@ -252,18 +383,60 @@ return {
         { label:"26'-2\"", lf:26.17, pts:[[0.6087,0.77207],[0.7125,0.66894]] },
         { label:"38'-1 3/4\"", lf:38.15, pts:[[0.7119,0.67066],[0.7119,0.63769],[0.86765,0.63769]] }
       ] },
-    { key:'TD14', id:'TD-14', type:'Terrace Divider', zone:'Terrace', level:'L14',
-      status:'pending', date:'', louver:'na', sheet:'A-114.00',
-      lf:79.46, panelsDone:[false,false,false,false,false,false,false,false],
-      note:"14th floor terrace dividers \u00b7 8 panels \u00b7 79.46 LF",
+    { key:'TD14P01', id:'TD-14.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.02, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 1 of 8 \u00b7 10'-1/4\"",
       panels:[
-        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.46664],[0.17834,0.46664]] },
-        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.32175],[0.17834,0.32175]] },
-        { label:"10'-4\"", lf:10.33, pts:[[0.34657,0.6921],[0.34657,0.77331]] },
-        { label:"10'-4\"", lf:10.33, pts:[[0.39781,0.6921],[0.39781,0.77331]] },
-        { label:"10'-4\"", lf:10.33, pts:[[0.45602,0.6921],[0.45602,0.77331]] },
-        { label:"10'-4\"", lf:10.33, pts:[[0.56299,0.6921],[0.56299,0.77331]] },
-        { label:"10'-4 1/4\"", lf:10.35, pts:[[0.66019,0.6293],[0.68403,0.69971]] },
+        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.46664],[0.17834,0.46664]] }
+      ] },
+    { key:'TD14P02', id:'TD-14.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.02, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 2 of 8 \u00b7 10'-1/4\"",
+      panels:[
+        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.32175],[0.17834,0.32175]] }
+      ] },
+    { key:'TD14P03', id:'TD-14.3', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.33, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 3 of 8 \u00b7 10'-4\"",
+      panels:[
+        { label:"10'-4\"", lf:10.33, pts:[[0.34657,0.6921],[0.34657,0.77331]] }
+      ] },
+    { key:'TD14P04', id:'TD-14.4', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.33, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 4 of 8 \u00b7 10'-4\"",
+      panels:[
+        { label:"10'-4\"", lf:10.33, pts:[[0.39781,0.6921],[0.39781,0.77331]] }
+      ] },
+    { key:'TD14P05', id:'TD-14.5', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.33, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 5 of 8 \u00b7 10'-4\"",
+      panels:[
+        { label:"10'-4\"", lf:10.33, pts:[[0.45602,0.6921],[0.45602,0.77331]] }
+      ] },
+    { key:'TD14P06', id:'TD-14.6', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.33, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 6 of 8 \u00b7 10'-4\"",
+      panels:[
+        { label:"10'-4\"", lf:10.33, pts:[[0.56299,0.6921],[0.56299,0.77331]] }
+      ] },
+    { key:'TD14P07', id:'TD-14.7', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:10.35, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 7 of 8 \u00b7 10'-4 1/4\"",
+      panels:[
+        { label:"10'-4 1/4\"", lf:10.35, pts:[[0.66019,0.6293],[0.68403,0.69971]] }
+      ] },
+    { key:'TD14P08', id:'TD-14.8', type:'Terrace Divider',
+      zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:7.75, panelsDone:[false],
+      note:"14th floor terrace divider \u00b7 panel 8 of 8 \u00b7 7'-9\"",
+      panels:[
         { label:"7'-9\"", lf:7.75, pts:[[0.81289,0.57862],[0.81289,0.63958]] }
       ] },
     { key:'GR17', id:'GR-17', type:'Guardrail', zone:'Terrace', level:'L17',
@@ -274,15 +447,39 @@ return {
         { label:"154'-3/4\"", lf:154.06, pts:[[0.17301,0.2372],[0.13406,0.2372],[0.13406,0.76034],[0.72295,0.76034]] },
         { label:"25'-11\"", lf:25.92, pts:[[0.72096,0.76042],[0.86765,0.64329]] }
       ] },
-    { key:'TD17', id:'TD-17', type:'Terrace Divider', zone:'Terrace', level:'L17',
-      status:'pending', date:'', louver:'na', sheet:'A-117.00',
-      lf:32.11, panelsDone:[false,false,false,false,false],
-      note:"17th floor terrace dividers \u00b7 5 panels \u00b7 32.11 LF",
+    { key:'TD17P01', id:'TD-17.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:6.31, panelsDone:[false],
+      note:"17th floor terrace divider \u00b7 panel 1 of 5 \u00b7 6'-3 3/4\"",
       panels:[
-        { label:"6'-3 3/4\"", lf:6.31, pts:[[0.13235,0.35145],[0.1736,0.35145]] },
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.346,0.70561],[0.346,0.7628]] },
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.48339,0.70561],[0.48339,0.7628]] },
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.63967,0.70561],[0.63967,0.7628]] },
+        { label:"6'-3 3/4\"", lf:6.31, pts:[[0.13235,0.35145],[0.1736,0.35145]] }
+      ] },
+    { key:'TD17P02', id:'TD-17.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:6.35, panelsDone:[false],
+      note:"17th floor terrace divider \u00b7 panel 2 of 5 \u00b7 6'-4 1/4\"",
+      panels:[
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.346,0.70561],[0.346,0.7628]] }
+      ] },
+    { key:'TD17P03', id:'TD-17.3', type:'Terrace Divider',
+      zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:6.35, panelsDone:[false],
+      note:"17th floor terrace divider \u00b7 panel 3 of 5 \u00b7 6'-4 1/4\"",
+      panels:[
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.48339,0.70561],[0.48339,0.7628]] }
+      ] },
+    { key:'TD17P04', id:'TD-17.4', type:'Terrace Divider',
+      zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:6.35, panelsDone:[false],
+      note:"17th floor terrace divider \u00b7 panel 4 of 5 \u00b7 6'-4 1/4\"",
+      panels:[
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.63967,0.70561],[0.63967,0.7628]] }
+      ] },
+    { key:'TD17P05', id:'TD-17.5', type:'Terrace Divider',
+      zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:6.75, panelsDone:[false],
+      note:"17th floor terrace divider \u00b7 panel 5 of 5 \u00b7 6'-9\"",
+      panels:[
         { label:"6'-9\"", lf:6.75, pts:[[0.7668,0.65741],[0.78885,0.70999]] }
       ] },
     { key:'GR19', id:'GR-19', type:'Guardrail', zone:'Terrace', level:'L19',
@@ -293,14 +490,32 @@ return {
         { label:"136'-10 1/2\"", lf:136.88, pts:[[0.18284,0.26955],[0.13446,0.26955],[0.13446,0.72801],[0.78453,0.72801]] },
         { label:"12'-1\"", lf:12.08, pts:[[0.78296,0.72941],[0.86765,0.67448]] }
       ] },
-    { key:'TD19', id:'TD-19', type:'Terrace Divider', zone:'Terrace', level:'L19',
-      status:'pending', date:'', louver:'na', sheet:'A-119.00',
-      lf:25.76, panelsDone:[false,false,false,false],
-      note:"19th floor terrace dividers \u00b7 4 panels \u00b7 25.76 LF",
+    { key:'TD19P01', id:'TD-19.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:6.5, panelsDone:[false],
+      note:"19th floor terrace divider \u00b7 panel 1 of 4 \u00b7 6'-6\"",
       panels:[
-        { label:"6'-6\"", lf:6.50, pts:[[0.13235,0.37703],[0.18517,0.37703]] },
-        { label:"6'-5\"", lf:6.42, pts:[[0.40336,0.67266],[0.40336,0.73045]] },
-        { label:"6'-5\"", lf:6.42, pts:[[0.57412,0.67266],[0.57412,0.73045]] },
+        { label:"6'-6\"", lf:6.50, pts:[[0.13235,0.37703],[0.18517,0.37703]] }
+      ] },
+    { key:'TD19P02', id:'TD-19.2', type:'Terrace Divider',
+      zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:6.42, panelsDone:[false],
+      note:"19th floor terrace divider \u00b7 panel 2 of 4 \u00b7 6'-5\"",
+      panels:[
+        { label:"6'-5\"", lf:6.42, pts:[[0.40336,0.67266],[0.40336,0.73045]] }
+      ] },
+    { key:'TD19P03', id:'TD-19.3', type:'Terrace Divider',
+      zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:6.42, panelsDone:[false],
+      note:"19th floor terrace divider \u00b7 panel 3 of 4 \u00b7 6'-5\"",
+      panels:[
+        { label:"6'-5\"", lf:6.42, pts:[[0.57412,0.67266],[0.57412,0.73045]] }
+      ] },
+    { key:'TD19P04', id:'TD-19.4', type:'Terrace Divider',
+      zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:6.42, panelsDone:[false],
+      note:"19th floor terrace divider \u00b7 panel 4 of 4 \u00b7 6'-5\"",
+      panels:[
         { label:"6'-5\"", lf:6.42, pts:[[0.68783,0.67266],[0.68783,0.73045]] }
       ] },
     { key:'GR21', id:'GR-21', type:'Guardrail', zone:'Terrace', level:'L21',
@@ -311,10 +526,10 @@ return {
         { label:"33'-1 3/4\"", lf:33.15, pts:[[0.35019,0.32119],[0.64844,0.32119]] },
         { label:"33'-1 3/4\"", lf:33.15, pts:[[0.35019,0.67881],[0.64841,0.67881]] }
       ] },
-    { key:'TD21', id:'TD-21', type:'Terrace Divider', zone:'Terrace', level:'L21',
-      status:'pending', date:'', louver:'na', sheet:'A-121.00',
-      lf:39.29, panelsDone:[false],
-      note:"21th floor terrace dividers \u00b7 1 panel \u00b7 39.29 LF",
+    { key:'TD21P01', id:'TD-21.1', type:'Terrace Divider',
+      zone:'Terrace', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:39.29, panelsDone:[false],
+      note:"21th floor terrace divider \u00b7 panel 1 of 1 \u00b7 39'-3 1/2\"",
       panels:[
         { label:"39'-3 1/2\"", lf:39.29, pts:[[0.3503,0.44223],[0.41398,0.44223],[0.41398,0.49638],[0.64981,0.49638]] }
       ] },

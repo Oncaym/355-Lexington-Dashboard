@@ -100,7 +100,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="project-config.js?v=20260827a-screens"></script>
+<script src="project-config.js?v=20260827d-panels"></script>
 <script src="cloud-sync.js?v=20260805a"></script>
 
 
@@ -137,6 +137,7 @@
     --rail-td: #a371f7;
     --rail-es: #e3b341;
     --rail-track: rgba(140,150,165,.55);
+    --plan-dim: 0.35;      /* how loud the sheet under our scope is — see .plan-img */
     /* Chart ink. core's chartTickColor()/chartGridColor() are hardcoded per
        day/night; lf.js prefers these when a theme sets them. */
     --chart-tick: #8b949e;
@@ -166,6 +167,7 @@
     --rail-td: #8250df;
     --rail-es: #9a6700;
     --rail-track: rgba(90,100,115,.45);
+    --plan-dim: 0.4;       /* black linework on a light page fades faster than white on dark */
     --chart-tick: #59636e;
     --chart-grid: rgba(0,0,0,0.07);
   }
@@ -536,6 +538,11 @@
     height: auto;
     user-select: none;
     -webkit-user-drag: none;
+    /* The sheet is CONTEXT, not the content (Leo 2026-08-27): every floor tab should read
+       as "here is our scope", with just enough architecture under it to place the work.
+       The railing / screen geometry is a separate SVG on top, so it keeps full strength
+       while this fades. Zoom in when you actually need to read the drawing. */
+    opacity: var(--plan-dim, 0.35);
   }
   .plan-marker {
     position: absolute;
@@ -1018,6 +1025,56 @@
     max-width: 420px;
   }
   .modal h3 { margin-bottom: 16px; font-size: 16px; }
+  /* Submittal modal carries the per-reviewer response matrix — wider + scrollable */
+  /* F-053 (Leo): the submittal editor is a working surface — dozens of rows, long Procore
+     responses. It gets the whole screen, and the fields lay out in two columns once there
+     is room, so the reviewer cards (the tall part) get the space instead of the date boxes. */
+  #submittalModal .modal {
+    max-width: min(1400px, 96vw);
+    width: 96vw;
+    max-height: 94vh;
+    overflow-y: auto;
+    padding: 20px 22px;
+  }
+  #submittalModal .sub-form-grid { display: grid; grid-template-columns: 1fr; gap: 0 18px; }
+  @media (min-width: 900px) {
+    #submittalModal .sub-form-grid { grid-template-columns: 1fr 1fr; }
+    /* Reviewer responses + the note span both columns — they are the tall fields. */
+    #submittalModal .sub-form-grid .span-2 { grid-column: 1 / -1; }
+  }
+  #submittalModal .modal-actions { position: sticky; bottom: -20px; background: var(--panel); padding: 12px 0 2px; margin-top: 4px; }
+  @media (max-width: 720px) {
+    #submittalModal .modal { width: 100%; max-width: 100%; max-height: 92vh; padding: 18px 16px; }
+  }
+  /* F-054: the log is a reading surface — dozens of rows, long Procore responses.
+     Taller viewport, sane column widths, and the note column gets real room instead of
+     being squeezed to a ribbon by the ball-in-court cell. */
+  #submittalsSection .table-wrap { max-height: 72vh; }
+  #submittalsSection table { table-layout: auto; }
+  #submittalsSection th:nth-child(3),                 /* TITLE */
+  #submittalsSection td:nth-child(3) { min-width: 190px; }
+  #submittalsSection th:nth-child(11),                /* NOTE */
+  #submittalsSection td:nth-child(11) { min-width: 260px; max-width: 420px; white-space: normal; }
+  #submittalsSection td { vertical-align: top; }
+  /* Long notes/responses stay 6 lines tall until you open the row — otherwise one wordy
+     Procore reply makes a row taller than the screen (that is what it looked like). */
+  #submittalsSection td:nth-child(11) > div,
+  #submittalsSection td:nth-child(10) .bic-reply {
+    display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  /* Drag handle for reordering submittal rows */
+  .drag-grip {
+    cursor: grab;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-dim);
+    padding: 3px 0;
+    border-radius: 4px;
+    user-select: none;
+  }
+  .drag-grip:hover { color: var(--text); background: var(--bg); }
+  .drag-grip:active { cursor: grabbing; }
   .form-row { margin-bottom: 14px; }
   .form-row label {
     display: block;
@@ -1685,7 +1742,7 @@
 </style>
 <style data-designer-overlay="1"></style></head>
 <body data-om-id="17a02737:4">
-<script src="themes.js?v=20260827a-screens"></script>
+<script src="themes.js?v=20260827d-panels"></script>
 
 <header data-om-id="17a02737:5">
   <div class="header-inner" data-om-id="17a02737:6">
@@ -1701,6 +1758,10 @@
         <button class="lang-btn" data-lang="ko" data-om-id="17a02737:14">한국어</button>
       </div>
       <a class="btn" href="/chat" title="Natural-language chat updater">💬 Chat</a>
+      <!-- warehouse.html is a PROJECT page, not core. _build/rebrand.py deleted this link
+           when the folder was cloned from CP2 ("drop CP2-only header pages"), which is why
+           it stayed invisible even once the page itself was dropped into the folder. -->
+      <a class="btn" href="warehouse.html" title="Warehouse"><span data-i18n="btn_warehouse">📦 Warehouse</span></a>
       <button class="btn" type="button" onclick="openDrawings()" title="Project drawings"><span data-i18n="btn_drawings">📐 Drawings</span></button>
       <button class="btn btn-primary" onclick="openAddLog()" data-gc-hide data-om-id="17a02737:21"><span data-i18n="btn_add_log" data-om-id="17a02737:22">+ Add Daily Log</span></button>
     </div>
@@ -1905,6 +1966,38 @@
     </section>
   </div>
 
+  <!-- Submittal Log — AC3 features F-031 / F-032 / F-053 / F-054. Every function behind
+       this (renderSubmittals, openAddSubmittal, saveSubmittal, the per-reviewer response
+       matrix, drag reordering) has always been in core app.js, byte-identical here; CP2's
+       index.html simply never got the markup, so this tracker inherited the hole. Ported
+       verbatim from AC3 so a future core sync keeps matching. -->
+  <section class="section" id="submittalsSection">
+    <div class="section-header">
+      <div class="section-title">📋 Submittal Log</div>
+      <select id="submittalFilter" onchange="setSubmittalFilter(this.value)" style="font-size:12px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 9px;margin:0 10px">
+        <option value="all">All statuses</option>
+        <option value="draft">Draft</option>
+        <option value="submitted">Submitted</option>
+        <option value="under-review">Under Review</option>
+        <option value="approved">Approved</option>
+        <option value="approved-as-noted">Approved as Noted</option>
+        <option value="revise-resubmit">Revise &amp; Resubmit</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <button class="btn" onclick="openAddSubmittal()" style="font-size:12px;padding:6px 10px">+ Add Submittal</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px"></th><th>#</th><th>Title</th><th>Spec</th><th>Scope</th><th>Submitted</th><th>Status</th><th>Rev</th><th>Returned</th><th>Ball in court</th><th>Note</th>
+          </tr>
+        </thead>
+        <tbody id="submittalsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
   <p class="last-updated" data-om-id="17a02737:1298"><span data-i18n="footer_updated" data-om-id="17a02737:1299">Last updated</span>: <span id="lastUpdated" data-om-id="17a02737:1300">5/22/2026, 10:13:13 AM</span> · <span data-i18n="footer_autosave" data-om-id="17a02737:1301">Auto-saved in browser</span></p>
 </main>
 
@@ -2064,6 +2157,68 @@
 </div>
 
 <!-- Photo gallery modal (viewing ISSUE photos) -->
+<!-- Submittal add/edit modal -->
+<div class="modal-overlay" id="submittalModal">
+  <div class="modal">
+    <h3 id="submittalModalTitle">Add Submittal</h3>
+    <div class="sub-form-grid">
+    <div class="form-row">
+      <label>Number</label>
+      <input type="text" id="sub-number" placeholder="e.g. SUB-014">
+    </div>
+    <div class="form-row">
+      <label>Title</label>
+      <input type="text" id="sub-title" placeholder="e.g. Storefront shop drawings">
+    </div>
+    <div class="form-row">
+      <label>Spec section</label>
+      <input type="text" id="sub-spec" placeholder="e.g. 08 41 13">
+    </div>
+    <div class="form-row">
+      <label>Scope</label>
+      <input type="text" id="sub-scope" placeholder="e.g. Storefront / Curtain wall / Doors">
+    </div>
+    <div class="form-row">
+      <label>Submitted date</label>
+      <input type="date" id="sub-submitted">
+    </div>
+    <div class="form-row">
+      <label>Status</label>
+      <select id="sub-status">
+        <option value="draft">Draft</option>
+        <option value="submitted">Submitted</option>
+        <option value="under-review">Under Review</option>
+        <option value="approved">Approved</option>
+        <option value="approved-as-noted">Approved as Noted</option>
+        <option value="revise-resubmit">Revise &amp; Resubmit</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Revision</label>
+      <input type="text" id="sub-rev" placeholder="e.g. Rev0" onchange="onSubRevChange()">
+    </div>
+    <div class="form-row">
+      <label>Returned date</label>
+      <input type="date" id="sub-returned">
+    </div>
+    <div class="form-row span-2">
+      <label>Ball in court &amp; responses</label>
+      <div id="sub-reviews"></div>
+    </div>
+    <div class="form-row span-2">
+      <label>Note</label>
+      <textarea id="sub-note" rows="2"></textarea>
+    </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="submittalDeleteBtn" onclick="deleteSubmittalFromModal()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn" onclick="closeSubmittalModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubmittal()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="photoGalleryModal">
   <div class="modal photo-gallery-modal">
     <h3 id="photoGalleryTitle" data-i18n="photo_gallery_title">Site Issue Photos</h3>
@@ -2112,7 +2267,7 @@
 <script type="application/json" id="__embedded_state"></script>
 <script src="app-log.js?v=20260805k"></script>
 <script src="app.js?v=20260805l"></script>
-<script src="lf.js?v=20260827a-screens"></script>
+<script src="lf.js?v=20260827d-panels"></script>
 <!-- boot handled inside app.js (core) -->
 </body>
 </html>

@@ -32,9 +32,9 @@ straight out of the drawings.
 | | Rows | Pieces | Linear feet |
 |---|---|---|---|
 | Guardrail | 8 (one per floor) | 16 runs | **1,201.52** |
-| Terrace Divider | 7 (one per floor) | 33 panels | **270.01** |
+| Terrace Divider | **33 (one per panel)** | 33 panels | **270.01** |
 | Equipment Screen | 2 (26th + 27th) | 7 faces (67 panels) | **182.33** |
-| **Total** | **17** | **56** | **1,653.86** |
+| **Total** | **43** | **56** | **1,653.86** |
 
 Floors with scope: **8, 10, 12, 14, 17, 19, 21, 26, 27**.
 
@@ -86,6 +86,73 @@ One row = one floor × one category.
   panels for dividers, on their own chart axes because the two units don't mix. One entry
   per row per day; correcting a number the same day rewrites it, correcting back to zero
   removes it.
+
+## The plan sheet is deliberately faint
+
+Per Leo 2026-08-27: each floor tab should read as *here is our scope*, not *here is an
+architectural drawing with something on it*. So `.plan-img` carries `opacity: var(--plan-dim)`
+— `0.35` in the dark UI, `0.4` in day mode, where black linework on a light page fades
+faster — and the railing / screen strokes in `lf.js` went up to 9 px to match. The overlay
+is a separate SVG and stays at full strength. Zoom in when you actually need to read the
+sheet; change the number in `:root` / `body.day-mode` in `index.html` to taste, or override
+`--plan-dim` from a theme.
+
+## One row per divider panel
+
+Leo, 2026-08-27: *"点一下变颜色有什么用 — 我要记录 installation date, field verify and rfi."*
+He was right. A divider used to be one row per floor carrying a boolean per panel, so a
+click flipped a colour and recorded nothing — no date, no measurements, no RFI.
+
+Everything the field actually writes down already hangs off a **row** in core `app.js`: the
+Calendar tab's status + date, the Field Verify measurement list, the RFI list, issues,
+photos, the daily log. So each panel is now its own row — `TD12P07` = 12th floor, panel 7,
+shown as `TD-12.7` — and gets all of it with no new UI. Tapping a panel on the plan opens
+that panel's row; the row's status is what marks it in, and `panelsDone` only follows along
+so the plan colour and the KPI keep reading one number.
+
+Guardrail runs and screen faces are deliberately **not** split. They are lengths you drag,
+and nobody asked for that.
+
+Live data is carried across by the `split-divider-panels-2026-08` migration, which runs
+*before* the seed merge (so it builds the panel rows itself out of `PROJECT.seedUnits`) and
+moves anything already booked on a floor row onto the right panel row.
+
+## Why the divider panels could not be clicked
+
+Fixed 2026-08-27, and worth knowing before adding anything else to the plan. `app.js` pans
+the plan by calling `setPointerCapture()` on `#planViewport` from its own `pointerdown`
+handler. Pointer capture retargets everything that follows — `mouseup` included — to the
+viewport, and the browser then computes the `click` target as the common ancestor of
+mousedown (the panel) and mouseup (the viewport). Result: **no `click` ever reaches a panel**.
+The press registered, the release went somewhere else, nothing happened.
+
+Guardrail runs were never affected because `startDrag()` stops the pointerdown from reaching
+the viewport at all. Panels now do the same: swallow the pointerdown, take the capture, and
+decide on pointerup — which also buys a 4 px movement threshold, so sliding the plan with a
+finger that landed on a panel no longer books it.
+
+The reason this survived so long: `smoke-browser.cjs` toggled panels with
+`el.dispatchEvent(new MouseEvent('click'))`, which skips hit-testing *and* pointer capture,
+so the test was green the whole time. Plan interactions are driven with `page.mouse` now.
+
+## Warehouse and the Submittal Log — why they were missing
+
+Both were gone for the same class of reason, and neither failed loudly, because a section
+that isn't in the HTML simply renders as nothing.
+
+- **Warehouse.** `_build/rebrand.py` deletes the header link when cloning from CP2 (it drops
+  "CP2-only header pages"), so even after `warehouse.html` was copied into the folder there
+  was no way to reach it. The link is back, and the page is branded for this building.
+- **Submittal Log.** Every function behind it — `renderSubmittals`, the per-reviewer
+  ball-in-court matrix, drag reordering — has always been in `app.js`, which is byte-identical
+  with AC3's. Only the markup was missing: AC3 added it (features F-031 / F-032 / F-053 /
+  F-054) and CP2's `index.html` never got the port, so this tracker inherited the hole. The
+  section, the modal and their CSS are now copied verbatim from AC3 so a future core sync
+  keeps matching.
+
+The reviewer chain is project data (`PROJECT.submittalReviewers`, generated from
+`_build/write_config.py`) and is **still empty** for this job — core pre-fills nothing rather
+than inventing AC3's reviewers. Fill it in and re-run `write_config.py`.
 
 ## Floor plans
 
@@ -175,25 +242,25 @@ submittals, drawings, elevations and marker positions. **Feet and panels you hav
 booked are kept.** It runs only if it actually finds foreign rows, so a clean browser is
 untouched, and it records itself in `state.migrations[]` so it never runs twice.
 
-## Cloud sync — not set up, and read this before you do
+## Cloud sync — live since 2026-08-27
 
-`firebase-config.js` is **deliberately empty**, so the tracker runs in **LOCAL mode**:
-everything works, state is saved in the browser, no login, no multi-user sync.
+`firebase-config.js` now points at **`lexington-avenue-93a52`**, this building's own
+Firebase project. The cloud is therefore **the single source of truth**: the embedded seed
+in `project-config.js` is only used to fill a database that has never been written to. To
+reset, delete `/state` in the Firebase console and let the app reseed.
 
 > ⚠️ This folder originally shipped with **CP2's live config** copied in by mistake. Opening
 > the page therefore read and wrote **Cooper Park 2's production database** — CP2's units
 > appeared here and these railing rows were pushed into CP2 (since cleaned up). **One
 > Firebase project per building, always.** Never paste another job's config into this file.
 
-To go live:
+Still to do on the cloud side: publish `firebase-database-rules.json`, create accounts for
+whoever edits, and set `ANTHROPIC_API_KEY` in Vercel for the chat updater.
 
-1. Firebase Console → **new** project (not CP2's).
-2. Realtime Database + email/password auth; accounts for whoever edits.
-3. Paste the config into `firebase-config.js`, publish `firebase-database-rules.json`.
-4. Deploy to Vercel. The chat updater additionally needs an `ANTHROPIC_API_KEY` env var.
-
-Once cloud is configured **the cloud is the single source of truth** — to reset, delete
-`/state` in the Firebase console and the app reseeds from `project-config.js`.
+**Tests never touch it.** `smoke-browser.cjs` serves the page an empty config on purpose, so
+a test run cannot sign in to the live project or write its fake progress into it;
+`test-lf.cjs` checks the real file on disk instead, and fails if any value in it names a
+building other than this one.
 
 ## Files
 
@@ -204,10 +271,11 @@ Once cloud is configured **the cloud is the single source of truth** — to rese
 | `lf.js` | the railing model: plan overlay + drag, cards, rollup, modal, log, trend |
 | `themes.js` | the theme registry — add a look by appending one entry |
 | `app.js`, `app-log.js`, `cloud-sync.js`, `chat.html`, `api/parse.js` | **core** — byte-identical with CP2/AC3, sync freely between projects |
-| `plan-l*.png` | floor plans (light + dark twin per floor) |
+| `plan-l*.png` | floor plans (light + dark twin per floor) — drawn dimmed, see below |
+| `warehouse.html` | receiving page: photograph an arrival, log it, track material. Its own page, needs the cloud config |
 | `firebase-config.js` | empty on purpose — see above |
 | `_build/` | the pipeline that produced all of the above, with assertions |
-| `_tests/` | `test-lf.cjs` (118 assertions), `smoke-browser.cjs` (93 real-browser checks) |
+| `_tests/` | `test-lf.cjs` (132 assertions), `smoke-browser.cjs` (102 real-browser checks) |
 
 ## Rebuilding from the drawings
 
@@ -248,6 +316,10 @@ the baseline onto existing data and only resizes the progress arrays.
       titleblock, so the number is an assumption (`SHEET_OVERRIDE` in the extractor).
 - [x] ~~Confirm the **26th floor** guardrail belongs in our contract.~~ In, per Leo
       2026-08-27.
-- [ ] Firebase + Vercel when the team needs live sync.
+- [ ] Fill `submittalReviewers` in `_build/write_config.py` with this job's Procore review
+      chain, then re-run it.
+- [ ] Publish `firebase-database-rules.json` and create the edit accounts.
+- [x] ~~Firebase + Vercel when the team needs live sync.~~ Firebase live 2026-08-27
+      (`lexington-avenue-93a52`).
 - [ ] Who is the GC? `header_sub` currently names the scope, not the builder.
 - [ ] Splitting a floor row into one row per run is a config change, not code.

@@ -72,7 +72,7 @@
      and the interactive railings simply never appeared — with no error to go on. The
      badge makes "which build is actually loaded" answerable at a glance; keep it in step
      with the ?v= strings in index.html. */
-  var BUILD = 'geo·2026-08-27a';
+  var BUILD = 'panel·2026-08-27d';
 
   // ---------------------------------------------------------------- helpers
   function esc(s) {
@@ -121,7 +121,13 @@
   function grDone(u) {
     return u.runs.reduce(function (s, r, i) { return s + runDone(u, i); }, 0);
   }
+  /* One row per panel since 2026-08-27, so the ROW's status is the panel's status — which
+     is the whole point: a status carries a date, and a row carries Field Verify, RFIs,
+     issues and photos with it. panelsDone is kept in step (baselineSync) purely so the
+     seed, older saved state and the plan all keep the same shape; it is never the truth.
+     The multi-panel branch stays for any row that predates the split. */
   function tdDone(u) {
+    if (u.panels && u.panels.length === 1) return u.status === 'installed' ? 1 : 0;
     return (u.panelsDone || []).filter(Boolean).length;
   }
   /* One progress reading for any row, so the cards / table / drill-down don't each
@@ -171,6 +177,8 @@
         if (!Array.isArray(u.panelsDone)) u.panelsDone = [];
         u.panelsDone.length = u.panels.length;
         for (var j = 0; j < u.panels.length; j++) u.panelsDone[j] = !!u.panelsDone[j];
+        // single-panel rows: derive it from the row, never the other way round
+        if (u.panels.length === 1) u.panelsDone = [u.status === 'installed'];
       }
     });
   }
@@ -302,6 +310,7 @@
      ========================================================================== */
   var SVGNS = 'http://www.w3.org/2000/svg';
   var _drag = null;
+  var _tap = null;
 
   function planUnitsOnFloor() {
     var lvl = (typeof currentLevel !== 'undefined') ? currentLevel : null;
@@ -420,14 +429,14 @@
       // take the whole overlay down.
       try {
         var pt = fill.getPointAtLength(fill.getTotalLength() * frac);
-        g.appendChild(mk('circle', { cx: pt.x, cy: pt.y, r: 5, class: 'lf-knob', fill: statusColor(u) }));
+        g.appendChild(mk('circle', { cx: pt.x, cy: pt.y, r: 6, class: 'lf-knob', fill: statusColor(u) }));
       } catch (e) {}
     }
     hit.addEventListener('pointerdown', function (ev) { startDrag(ev, u, i, fill, hit); });
   }
 
   function drawPanel(svg, u, panel, i) {
-    var done = !!(u.panelsDone || [])[i];
+    var done = u.panels.length === 1 ? tdDone(u) === 1 : !!(u.panelsDone || [])[i];
     var g = mk('g', { class: 'lf-panel-g', 'data-key': u.key, 'data-i': i });
     g.appendChild(mk('path', { d: d_of(panel.pts), class: 'lf-track lf-track-td', stroke: trackColor() }));
     var line = mk('path', {
@@ -437,18 +446,23 @@
     g.appendChild(line);
     var hit = mk('path', { d: d_of(panel.pts), class: 'lf-hit' });
     var t = document.createElementNS(SVGNS, 'title');
-    t.textContent = u.id + ' · panel ' + (i + 1) + '/' + u.panels.length + ' · ' + panel.label +
-      ' · ' + (done ? 'installed' : 'not installed') + '\nClick to toggle';
+    t.textContent = u.id + ' · ' + panel.label + ' · ' + (u.status || 'pending') +
+      (u.date ? ' ' + u.date : '') + '\nClick to open this panel — date, Field Verify, RFI';
     hit.appendChild(t);
     g.appendChild(hit);
     svg.appendChild(g);
-    hit.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      if (typeof _isRO === 'function' && _isRO()) return;
-      var before = progress(u).done;
-      u.panelsDone[i] = !u.panelsDone[i];
-      commit(u, before, u.id + ' panel ' + (i + 1) + ' → ' + (u.panelsDone[i] ? 'installed' : 'pending'));
-    });
+    /* Toggling on `click` looks obvious and does not work. app.js pans the plan by calling
+       setPointerCapture() on #planViewport from ITS pointerdown handler, and pointer capture
+       retargets everything that follows — mouseup included — to the viewport. The browser
+       then computes the click target as the common ancestor of mousedown (this path) and
+       mouseup (the viewport), so no `click` ever reaches the panel: press lands, release
+       goes somewhere else, nothing happens. Guardrail runs never hit this because
+       startDrag() stops the pointerdown from reaching the viewport at all.
+
+       So panels do the same thing: swallow the pointerdown, take the capture themselves, and
+       decide on pointerup. Which also buys the movement threshold — on a phone, sliding the
+       plan with a finger that happened to land on a panel must not book that panel. */
+    hit.addEventListener('pointerdown', function (ev) { startTap(ev, u); });
   }
 
   /* Closest point along a path to a screen-space pointer. Sample coarsely, then
@@ -499,6 +513,17 @@
     document.body.classList.add('lf-dragging');
   }
 
+  /* A press on a divider panel. Mirrors startDrag(): the pointer belongs to us, not to the
+     plan's pan handler. onDragEnd() decides whether it was a tap or a slide. */
+  function startTap(ev, u) {
+    var em = document.getElementById('editPositionMode');
+    if (em && em.checked) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    _tap = { u: u, startX: ev.clientX, startY: ev.clientY };
+    try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) {}
+  }
+
   function onDragMove(ev) {
     if (!_drag) return;
     if (Math.abs(ev.clientX - _drag.startX) > 3 || Math.abs(ev.clientY - _drag.startY) > 3) _drag.moved = true;
@@ -511,6 +536,16 @@
   }
 
   function onDragEnd(ev) {
+    if (_tap) {
+      var t = _tap; _tap = null;
+      // Slid more than a thumb's wobble → they were moving the plan, not opening a panel.
+      if (Math.abs(ev.clientX - t.startX) > 4 || Math.abs(ev.clientY - t.startY) > 4) return;
+      /* Open the panel's OWN row. It used to toggle a boolean here, which changed a colour
+         and recorded nothing — no date, no Field Verify, no RFI (Leo 2026-08-27). Those all
+         live on a row, so the row is what a tap has to open. */
+      if (typeof openUnit === 'function') openUnit(t.u.key);
+      return;
+    }
     if (!_drag) return;
     var d = _drag; _drag = null;
     document.body.classList.remove('lf-dragging');
@@ -604,35 +639,21 @@
         paintModal();
       });
     } else if (isTD(u)) {
+      /* One panel per row now, so there is nothing to tick here: the CALENDAR tab sets the
+         status and the installation date, Field Verify records the measurements and RFI the
+         inquiries — all of it against this panel, because this panel is the row. This box is
+         just the identity card, so you can see WHICH panel you opened. The multi-panel chip
+         grid is gone with the floor-level rows it belonged to. */
+      var pn = u.panels[0] || {};
       box.innerHTML = head +
-        '<div class="lf-panels">' + u.panels.map(function (p2, i) {
-          var on = !!(u.panelsDone || [])[i];
-          return '<label class="lf-panel-chip' + (on ? ' on' : '') + '">' +
-            '<input type="checkbox" data-i="' + i + '"' + (on ? ' checked' : '') + '>' +
-            '<span>' + (i + 1) + '</span><em>' + esc(p2.label) + '</em></label>';
-        }).join('') + '</div>' +
-        '<div class="lf-box-foot"><button type="button" class="btn btn-sm" id="lf-all">All in</button>' +
-        '<button type="button" class="btn btn-sm" id="lf-none">None</button>' +
+        '<div class="lf-one-panel">' +
+        '<span class="lf-one-dot" style="background:' + (tdDone(u) === 1 ? tdColor() : trackColor()) + '"></span>' +
+        '<span><b>' + esc(u.id) + '</b> · ' + esc(pn.label || '') + '</span>' +
         '<span class="lf-pct" id="lf-pct">' + p.pctv + '%</span></div>' +
-        '<div class="lf-hint">Dividers are tracked as whole panels — no part-panels. ' +
-        'You can also click a panel straight on the plan.</div>';
-      box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
-        c.addEventListener('change', function () {
-          c.closest('.lf-panel-chip').classList.toggle('on', c.checked); paintModal();
-        });
-      });
-      box.querySelector('#lf-all').addEventListener('click', function () {
-        box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
-          c.checked = true; c.closest('.lf-panel-chip').classList.add('on');
-        });
-        paintModal();
-      });
-      box.querySelector('#lf-none').addEventListener('click', function () {
-        box.querySelectorAll('.lf-panel-chip input').forEach(function (c) {
-          c.checked = false; c.closest('.lf-panel-chip').classList.remove('on');
-        });
-        paintModal();
-      });
+        '<div class="lf-hint">This row <b>is</b> one divider panel. Set the date on the ' +
+        '<b>Calendar</b> tab, measurements on <b>Field Verify</b>, and anything open on ' +
+        '<b>RFI</b> — they all belong to this panel. A panel is in or it is not; there are ' +
+        'no part-panels.</div>';
     } else {
       box.innerHTML = '';
     }
@@ -651,9 +672,9 @@
       return { done: vals.reduce(function (a, b) { return a + (b || 0); }, 0), runs: vals };
     }
     if (isTD(u)) {
-      var flags = [];
-      box.querySelectorAll('.lf-panel-chip input').forEach(function (c) { flags[+c.dataset.i] = c.checked; });
-      return { done: flags.filter(Boolean).length, panels: flags };
+      // Nothing to read: the Calendar tab owns a divider row, and applyModal() copies its
+      // status back onto panelsDone so the plan and the cards keep one number.
+      return { done: tdDone(u), panels: (u.panelsDone || []).slice() };
     }
     return null;
   }
@@ -671,11 +692,18 @@
     }
   }
   function applyModal(u) {
+    if (isTD(u)) {
+      /* A divider row runs the OTHER WAY: core's Calendar tab is the truth (status + date),
+         and panelsDone just follows it so the plan colour and the KPI keep reading one
+         number. Nothing to derive, nothing to push back. */
+      var cal = document.querySelector('#cal-rows .cal-row[data-scope="frame"] .cal-status');
+      if (cal) u.panelsDone = [cal.value === 'installed'];
+      return;
+    }
     var r = readModal(u);
     if (!r) return;
-    if (isRun(u)) u.runsDone = r.runs.map(function (v) { return Math.round((v || 0) * 100) / 100; });
-    if (isTD(u)) u.panelsDone = r.panels.map(Boolean);
-    if (isRun(u)) u.lfDone = Math.round(grDone(u) * 100) / 100;
+    u.runsDone = r.runs.map(function (v) { return Math.round((v || 0) * 100) / 100; });
+    u.lfDone = Math.round(grDone(u) * 100) / 100;
     // Hand the derived status to core through the Calendar tab's Frame row, which
     // saveUnit() mirrors into u.status / u.date.
     var row = document.querySelector('#cal-rows .cal-row[data-scope="frame"]');
@@ -701,10 +729,20 @@
       var delta = (Number(l.to) || 0) - (Number(l.from) || 0);
       if (!delta) return;
       var u = unitByKey(l.unitKey);
-      var k = (u && isTD(u)) ? 'td' : (u && isES(u)) ? 'es' : 'gr';
+      if (u && isTD(u)) return;                     // counted from the row's date, below
+      var k = (u && isES(u)) ? 'es' : 'gr';
       if (!byDate[l.date]) byDate[l.date] = { gr: 0, td: 0, es: 0 };
       byDate[l.date][k] += delta;
     });
+    /* Divider panels are ordinary rows now, booked through the Calendar tab, so their day
+       is just the row's date — no delta entry to chase, and re-dating a panel moves it on
+       the chart the way you would expect. */
+    units().filter(isTD).forEach(function (u) {
+      if (u.status !== 'installed' || !u.date) return;
+      if (!byDate[u.date]) byDate[u.date] = { gr: 0, td: 0, es: 0 };
+      byDate[u.date].td += 1;
+    });
+
     var dates = Object.keys(byDate).sort();
     if (typeof trendChart !== 'undefined' && trendChart) { trendChart.destroy(); trendChart = null; }
     // A theme may set these; core's helpers only know day vs night.
@@ -815,10 +853,13 @@
       /* plan overlay */
       '#lfOverlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}',
       '#lfOverlay path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}',
-      '#lfOverlay .lf-track{stroke:rgba(140,150,165,.55);stroke-width:7}',
-      '#lfOverlay .lf-track-td{stroke:rgba(140,150,165,.4);stroke-width:6}',
-      '#lfOverlay .lf-fill{stroke-width:7;transition:stroke-dasharray .08s linear}',
-      '#lfOverlay .lf-panel{stroke-width:6}',
+      /* Widths go with the dimmed plan sheet (--plan-dim in index.html, Leo 2026-08-27):
+         the drawing steps back, so our scope has to step forward or the tab reads as a
+         faint plan with faint lines on it. */
+      '#lfOverlay .lf-track{stroke:rgba(140,150,165,.55);stroke-width:9}',
+      '#lfOverlay .lf-track-td{stroke:rgba(140,150,165,.4);stroke-width:8}',
+      '#lfOverlay .lf-fill{stroke-width:9;transition:stroke-dasharray .08s linear}',
+      '#lfOverlay .lf-panel{stroke-width:8}',
       '#lfOverlay .lf-hit{stroke:transparent;stroke-width:22;pointer-events:stroke;cursor:pointer}',
       '#lfOverlay .lf-run-g:hover .lf-track{stroke:rgba(180,190,205,.8)}',
       '#lfOverlay .lf-run-g:hover .lf-fill{filter:drop-shadow(0 0 4px currentColor)}',
@@ -853,6 +894,8 @@
       '.lf-run-of{font-size:11px;color:var(--text-dim);min-width:64px;font-variant-numeric:tabular-nums}',
       '.lf-run-pct{font-size:12px;font-weight:600;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}',
       '.lf-panels{display:flex;flex-wrap:wrap;gap:6px}',
+      '.lf-one-panel{display:flex;align-items:center;gap:9px;font-size:13px}',
+      '.lf-one-dot{width:11px;height:11px;border-radius:50%;flex:none}',
       '.lf-panel-chip{display:flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px}',
       '.lf-panel-chip.on{border-color:var(--rail-td);background:color-mix(in srgb, var(--rail-td) 16%, transparent)}',
       '.lf-panel-chip em{font-style:normal;color:var(--text-dim);font-size:11px;font-variant-numeric:tabular-nums}',
