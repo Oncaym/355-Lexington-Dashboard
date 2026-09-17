@@ -25,6 +25,7 @@
      Guardrail        16 runs across 8 floors — 1201.52 LF
      Terrace Divider  33 panels across 7 floors — 270.01 LF
      Equipment Screen 7 faces across 2 floors — 182.33 LF
+     Shower Door      159 doors across 24 floors (2-25) — counted, not measured
 
    The equipment screens (26th + 27th mech roofs, added to the scope by Leo
    2026-08-27) are the one part of the baseline that is NOT measured by a
@@ -45,6 +46,10 @@ window.PROJECT = (() => {
 return {
   name: '355 Lexington Avenue',
   code: 'LEX355',
+  // AF Hub reporting (hub-report.js) - see Downloads/af-hub/README.md
+  hubId:    'lex',
+  hubUnit:  'pieces',
+  hubScope: 'Shower Door - Terrace Divider - Guardrail - Equipment Screen',
 
   // localStorage identity — NEVER change on a live project (orphans local caches)
   storageKey:  'lex355_install_v1',
@@ -74,26 +79,77 @@ return {
      planSize is the pixel size of the generated plan PNG — the overlay uses it only to
      keep stroke widths sane; all geometry is normalised 0..1. */
   floors: [
+    { key: 'L02', name: { en: '2nd Floor', zh: '2层 / 2nd Floor', ko: '2층' },
+      sheet: 'A-102.00', planSize: [5554, 3651] },
+    { key: 'L03', name: { en: '3rd Floor', zh: '3层 / 3rd Floor', ko: '3층' },
+      sheet: 'A-102.00', planSize: [5554, 3651],
+      img: 'plan-l02.png', imgDark: 'plan-l02-white.png' },
+    { key: 'L04', name: { en: '4th Floor', zh: '4层 / 4th Floor', ko: '4층' },
+      sheet: 'A-102.00', planSize: [5554, 3651],
+      img: 'plan-l02.png', imgDark: 'plan-l02-white.png' },
+    { key: 'L05', name: { en: '5th Floor', zh: '5层 / 5th Floor', ko: '5층' },
+      sheet: 'A-102.00', planSize: [5554, 3651],
+      img: 'plan-l02.png', imgDark: 'plan-l02-white.png' },
+    { key: 'L06', name: { en: '6th Floor', zh: '6层 / 6th Floor', ko: '6층' },
+      sheet: 'A-102.00', planSize: [5554, 3651],
+      img: 'plan-l02.png', imgDark: 'plan-l02-white.png' },
+    { key: 'L07', name: { en: '7th Floor', zh: '7层 / 7th Floor', ko: '7층' },
+      sheet: 'A-102.00', planSize: [5554, 3651],
+      img: 'plan-l02.png', imgDark: 'plan-l02-white.png' },
     { key: 'L08', name: { en: '8th Floor', zh: '八层 / 8th Floor', ko: '8층' },
-      sheet: 'A-108.00', planSize: [3125, 3125] },
+      sheet: 'A-108.00', planSize: [5660, 4158],
+      img: 'plan-l08.png', imgDark: 'plan-l08-white.png' },
+    { key: 'L09', name: { en: '9th Floor', zh: '9层 / 9th Floor', ko: '9층' },
+      sheet: 'A-108.00', planSize: [5660, 4158],
+      img: 'plan-l08.png', imgDark: 'plan-l08-white.png' },
     { key: 'L10', name: { en: '10th Floor', zh: '十层 / 10th Floor', ko: '10층' },
-      sheet: 'A-110.00', planSize: [3125, 3125],
+      sheet: 'A-110.00', planSize: [5659, 4174],
       img: 'plan-l10.png', imgDark: 'plan-l10-white.png' },
+    { key: 'L11', name: { en: '11th Floor', zh: '11层 / 11th Floor', ko: '11층' },
+      sheet: 'A-111.00', planSize: [5560, 3677],
+      img: 'plan-l11.png', imgDark: 'plan-l11-white.png' },
     { key: 'L12', name: { en: '12th Floor', zh: '十二层 / 12th Floor', ko: '12층' },
-      sheet: 'A-112.00', planSize: [6398, 3839],
+      sheet: 'A-112.00', planSize: [6398, 4377],
+      img: 'plan-l12.png', imgDark: 'plan-l12-white.png' },
+    { key: 'L13', name: { en: '13th Floor', zh: '13层 / 13th Floor', ko: '13층' },
+      sheet: 'A-112.00', planSize: [6398, 4377],
       img: 'plan-l12.png', imgDark: 'plan-l12-white.png' },
     { key: 'L14', name: { en: '14th Floor', zh: '十四层 / 14th Floor', ko: '14층' },
-      sheet: 'A-114.00', planSize: [6132, 3580],
+      sheet: 'A-114.00', planSize: [6132, 4112],
+      img: 'plan-l14.png', imgDark: 'plan-l14-white.png' },
+    { key: 'L15', name: { en: '15th Floor', zh: '15层 / 15th Floor', ko: '15층' },
+      sheet: 'A-114.00', planSize: [6132, 4112],
+      img: 'plan-l14.png', imgDark: 'plan-l14-white.png' },
+    { key: 'L16', name: { en: '16th Floor', zh: '16层 / 16th Floor', ko: '16층' },
+      sheet: 'A-114.00', planSize: [6132, 4112],
       img: 'plan-l14.png', imgDark: 'plan-l14-white.png' },
     { key: 'L17', name: { en: '17th Floor', zh: '十七层 / 17th Floor', ko: '17층' },
-      sheet: 'A-117.00', planSize: [4298, 3125],
+      sheet: 'A-117.00', planSize: [4298, 3318],
+      img: 'plan-l17.png', imgDark: 'plan-l17-white.png' },
+    { key: 'L18', name: { en: '18th Floor', zh: '18层 / 18th Floor', ko: '18층' },
+      sheet: 'A-117.00', planSize: [4298, 3318],
       img: 'plan-l17.png', imgDark: 'plan-l17-white.png' },
     { key: 'L19', name: { en: '19th Floor', zh: '十九层 / 19th Floor', ko: '19층' },
       sheet: 'A-119.00', planSize: [3460, 3125],
       img: 'plan-l19.png', imgDark: 'plan-l19-white.png' },
+    { key: 'L20', name: { en: '20th Floor', zh: '20层 / 20th Floor', ko: '20층' },
+      sheet: 'A-119.00', planSize: [3460, 3125],
+      img: 'plan-l19.png', imgDark: 'plan-l19-white.png' },
     { key: 'L21', name: { en: '21st Floor', zh: '二十一层 / 21st Floor', ko: '21층' },
-      sheet: 'A-121.00', planSize: [3125, 3125],
+      sheet: 'A-121.00', planSize: [4275, 3125],
       img: 'plan-l21.png', imgDark: 'plan-l21-white.png' },
+    { key: 'L22', name: { en: '22nd Floor', zh: '22层 / 22nd Floor', ko: '22층' },
+      sheet: 'A-121.00', planSize: [4275, 3125],
+      img: 'plan-l21.png', imgDark: 'plan-l21-white.png' },
+    { key: 'L23', name: { en: '23rd Floor', zh: '23层 / 23rd Floor', ko: '23층' },
+      sheet: 'A-123.00', planSize: [3125, 3125],
+      img: 'plan-l23.png', imgDark: 'plan-l23-white.png' },
+    { key: 'L24', name: { en: '24th Floor', zh: '24层 / 24th Floor', ko: '24층' },
+      sheet: 'A-123.00', planSize: [3125, 3125],
+      img: 'plan-l23.png', imgDark: 'plan-l23-white.png' },
+    { key: 'L25', name: { en: '25th Floor', zh: '25层 / 25th Floor', ko: '25층' },
+      sheet: 'A-125.00', planSize: [3125, 3125],
+      img: 'plan-l25.png', imgDark: 'plan-l25-white.png' },
     { key: 'L26', name: { en: '26th Floor', zh: '二十六层 / 26th Floor', ko: '26층' },
       sheet: 'A-126.00', planSize: [3828, 3125],
       img: 'plan-l26.png', imgDark: 'plan-l26-white.png' },
@@ -105,7 +161,8 @@ return {
   unitTypes: [
     { key: 'guardrail', label: 'Guardrail',       match: '^GR', shape: 'capsule', color: 'mint'   },
     { key: 'divider',   label: 'Terrace Divider', match: '^TD', shape: 'square',  color: 'violet' },
-    { key: 'screen',    label: 'Equipment Screen', match: '^ES', shape: 'capsule', color: 'amber'  }
+    { key: 'screen',    label: 'Equipment Screen', match: '^ES', shape: 'capsule', color: 'amber'  },
+    { key: 'shower',    label: 'Shower Door',      match: '^SD', shape: 'square',  color: 'cyan'   }
   ],
 
   /* One-time state repairs. Each runs once per browser / cloud database — the id is
@@ -204,20 +261,60 @@ return {
           (foreign.length > 6 ? ', …' : '') + '] and ' + (logWas - state.log.length) +
           ' foreign log entr(ies)';
       }
+    },
+    {
+      id: 'drop-ghost-geometry-2026-09',
+      note: "Leo 2026-09-01 saw a second divider drawn just above each real one on the " +
+            "17th floor. Cause: rows that are no longer in the seed but are still in the " +
+            "cloud — the floor-level TD17 divider rows this tracker used before the " +
+            "one-row-per-panel split, pushed back up by a browser that still had them " +
+            "cached (purge-foreign-state-2026-08 had already recorded itself as done, so " +
+            "it never looked again). baselineSync() cannot correct such a row — there is " +
+            "no seed entry to copy geometry from — so it kept the normalised coordinates " +
+            "it was saved with, which belong to a NARROWER crop of that sheet and " +
+            "therefore land shifted and stretched on today's plan image. lf.js now refuses " +
+            "to draw or count anything outside the seed; this deletes what is already " +
+            "there. Progress is not at risk: the split migration carried every booked " +
+            "panel onto its own row in August.",
+      apply(state) {
+        var legit = {};
+        (window.PROJECT.seedUnits || []).forEach(function (u) { legit[u.key] = 1; });
+        var units = Array.isArray(state.units) ? state.units : [];
+        var ghosts = units.filter(function (u) {
+          if (!u || legit[u.key]) return false;
+          // only rows that would DRAW: a stray key with no geometry harms nothing
+          return (Array.isArray(u.runs) && u.runs.length) ||
+                 (Array.isArray(u.panels) && u.panels.length) ||
+                 /^TD\d\d$/.test(u.key || '');
+        });
+        if (!ghosts.length) return 'no ghost rows here';
+        var keys = {};
+        ghosts.forEach(function (u) { keys[u.key] = 1; });
+        state.units = units.filter(function (u) { return u && !keys[u.key]; });
+        state.log = (Array.isArray(state.log) ? state.log : []).filter(function (l) {
+          return !(l && keys[l.unitKey || '']);
+        });
+        var pos = state.positions || {};
+        Object.keys(pos).forEach(function (k) { if (keys[k]) delete pos[k]; });
+        state.positions = pos;
+        return 'dropped ' + ghosts.length + ' ghost row(s) [' +
+          Object.keys(keys).slice(0, 8).join(', ') +
+          (ghosts.length > 8 ? ', …' : '') + ']';
+      }
     }
   ],
 
   i18n: {
-    en: { header_sub: "Railings & Screens — Guardrail · Terrace Divider · Equipment Screen",
+    en: { header_sub: "Guardrail · Terrace Divider · Equipment Screen · Shower Door",
           img_alt_gf: "355 Lexington Avenue — 8th Floor terrace plan",
           kpi_installed: "Rows Complete", kpi_installed_sub: "Floor/scope rows finished",
           kpi_pending: "Not Started", kpi_pending_sub: "Rows with nothing booked",
           sec_plan_title: "Terrace & Mech Roof Plan · Drag along a run to set how much is in",
-          sec_unit_map: "Railing Rows · Click a row to update it",
+          sec_unit_map: "Scope Rows · Click a row to update it",
           sec_table: "Railing Detail Table",
           sec_trend: "Installed per Day",
-          tool_hint: "Drag along a guardrail or screen face to book feet · click a divider panel to toggle it · click a run to open its row" },
-    zh: { header_sub: "栏杆与设备屏 — 护栏 · 露台隔板 · 设备屏",
+          tool_hint: "Drag along a guardrail or screen face to book feet · tap a divider panel or a shower door to open its row (date, Field Verify, RFI)" },
+    zh: { header_sub: "护栏 · 露台隔板 · 设备屏 · 淋浴门",
           img_alt_gf: "355 Lexington Avenue — 八层露台平面",
           kpi_installed: "已完成条目", kpi_installed_sub: "已完工的楼层/类别条目",
           kpi_pending: "未开始", kpi_pending_sub: "尚无进度的条目",
@@ -225,8 +322,8 @@ return {
           sec_unit_map: "栏杆条目 · 点击条目更新",
           sec_table: "栏杆明细表",
           sec_trend: "每日安装量",
-          tool_hint: "在护栏或设备屏上拖动即可录入已安装尺数 · 点击隔板可切换安装状态 · 点击某段可打开该条目" },
-    ko: { header_sub: "난간 및 스크린 — 난간 · 테라스 칸막이 · 장비 스크린",
+          tool_hint: "在护栏或设备屏上拖动即可录入尺数 · 点一下隔板或淋浴门即可打开它自己那条（日期 / Field Verify / RFI）" },
+    ko: { header_sub: "난간 · 테라스 칸막이 · 장비 스크린 · 샤워 도어",
           img_alt_gf: "355 Lexington Avenue — 8층 테라스 평면도",
           kpi_installed: "완료 항목", kpi_installed_sub: "완료된 층/공종 항목",
           kpi_pending: "미착수", kpi_pending_sub: "진행 없는 항목",
@@ -234,7 +331,7 @@ return {
           sec_unit_map: "난간 항목 · 항목을 눌러 업데이트",
           sec_table: "난간 상세 표",
           sec_trend: "일별 설치량",
-          tool_hint: "난간이나 장비 스크린을 드래그하여 길이 입력 · 칸막이 패널 클릭으로 토글 · 구간 클릭 시 항목 열기" }
+          tool_hint: "난간이나 장비 스크린을 드래그하여 길이 입력 · 칸막이 패널이나 샤워 도어를 눌러 해당 항목 열기" }
   },
 
   /* Scope baseline. One row per floor per category.
@@ -245,293 +342,1406 @@ return {
      `pts` are normalised 0..1 inside that floor's plan image.
      `key` is IMMUTABLE once cloud data exists — rename via `id` only. */
   seedUnits: [
+    { key:'SD0201', id:'SD-02.1', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0202', id:'SD-02.2', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0203', id:'SD-02.3', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0204', id:'SD-02.4', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0205', id:'SD-02.5', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0206', id:'SD-02.6', type:'Shower Door',
+      zone:'Bathroom', level:'L02', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"2nd floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
+    { key:'SD0301', id:'SD-03.1', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0302', id:'SD-03.2', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0303', id:'SD-03.3', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0304', id:'SD-03.4', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0305', id:'SD-03.5', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0306', id:'SD-03.6', type:'Shower Door',
+      zone:'Bathroom', level:'L03', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"3rd floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
+    { key:'SD0401', id:'SD-04.1', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0402', id:'SD-04.2', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0403', id:'SD-04.3', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0404', id:'SD-04.4', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0405', id:'SD-04.5', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0406', id:'SD-04.6', type:'Shower Door',
+      zone:'Bathroom', level:'L04', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"4th floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
+    { key:'SD0501', id:'SD-05.1', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0502', id:'SD-05.2', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0503', id:'SD-05.3', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0504', id:'SD-05.4', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0505', id:'SD-05.5', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0506', id:'SD-05.6', type:'Shower Door',
+      zone:'Bathroom', level:'L05', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"5th floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
+    { key:'SD0601', id:'SD-06.1', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0602', id:'SD-06.2', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0603', id:'SD-06.3', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0604', id:'SD-06.4', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0605', id:'SD-06.5', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0606', id:'SD-06.6', type:'Shower Door',
+      zone:'Bathroom', level:'L06', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"6th floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
+    { key:'SD0701', id:'SD-07.1', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 1 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15261,0.78327],[0.14248,0.79868],[0.13235,0.78327],[0.14248,0.76786],[0.15261,0.78327]] }
+      ] },
+    { key:'SD0702', id:'SD-07.2', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 2 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.72525,0.66468],[0.71512,0.68008],[0.705,0.66468],[0.71512,0.64927],[0.72525,0.66468]] }
+      ] },
+    { key:'SD0703', id:'SD-07.3', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 3 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.86765,0.65403],[0.85752,0.66944],[0.84739,0.65403],[0.85752,0.63862],[0.86765,0.65403]] }
+      ] },
+    { key:'SD0704', id:'SD-07.4', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 4 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38131,0.57718],[0.37119,0.59259],[0.36106,0.57718],[0.37119,0.56177],[0.38131,0.57718]] }
+      ] },
+    { key:'SD0705', id:'SD-07.5', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 5 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.29624,0.38215],[0.28612,0.39755],[0.27599,0.38215],[0.28612,0.36674],[0.29624,0.38215]] }
+      ] },
+    { key:'SD0706', id:'SD-07.6', type:'Shower Door',
+      zone:'Bathroom', level:'L07', status:'pending', date:'', louver:'na',
+      sheet:'A-102.00', lf:4.0, panelsDone:[false],
+      note:"7th floor shower door 6 of 6 \u00b7 sheet A-102.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.52503,0.21673],[0.5149,0.23214],[0.50477,0.21673],[0.5149,0.20132],[0.52503,0.21673]] }
+      ] },
     { key:'GR08', id:'GR-08', type:'Guardrail', zone:'Terrace', level:'L08',
       status:'pending', date:'', louver:'na', sheet:'A-108.00',
       lf:35.0, lfDone:0, runsDone:[0],
       note:"8th floor guardrail \u00b7 1 run \u00b7 35.0 LF",
       runs:[
-        { label:"35'-0\"", lf:35.00, pts:[[0.34249,0.52195],[0.65751,0.52195]] }
+        { label:"35'-0\"", lf:35.00, pts:[[0.69371,0.81801],[0.86765,0.81801]] }
+      ] },
+    { key:'SD0801', id:'SD-08.1', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 1 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.21464,0.69616],[0.2047,0.70969],[0.19477,0.69616],[0.2047,0.68263],[0.21464,0.69616]] }
+      ] },
+    { key:'SD0802', id:'SD-08.2', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 2 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.15223,0.69145],[0.14229,0.70498],[0.13235,0.69145],[0.14229,0.67792],[0.15223,0.69145]] }
+      ] },
+    { key:'SD0803', id:'SD-08.3', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 3 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.52257,0.62453],[0.51263,0.63806],[0.50269,0.62453],[0.51263,0.61101],[0.52257,0.62453]] }
+      ] },
+    { key:'SD0804', id:'SD-08.4', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 4 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.57468,0.62413],[0.56474,0.63766],[0.5548,0.62413],[0.56474,0.6106],[0.57468,0.62413]] }
+      ] },
+    { key:'SD0805', id:'SD-08.5', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 5 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.79265,0.62078],[0.78271,0.6343],[0.77277,0.62078],[0.78271,0.60725],[0.79265,0.62078]] }
+      ] },
+    { key:'SD0806', id:'SD-08.6', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 6 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.85681,0.58013],[0.84687,0.59365],[0.83693,0.58013],[0.84687,0.5666],[0.85681,0.58013]] }
+      ] },
+    { key:'SD0807', id:'SD-08.7', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 7 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.72381,0.54374],[0.71387,0.55727],[0.70393,0.54374],[0.71387,0.53021],[0.72381,0.54374]] }
+      ] },
+    { key:'SD0808', id:'SD-08.8', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 8 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.37725,0.50993],[0.36731,0.52346],[0.35737,0.50993],[0.36731,0.4964],[0.37725,0.50993]] }
+      ] },
+    { key:'SD0809', id:'SD-08.9', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 9 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.29379,0.33973],[0.28385,0.35326],[0.27391,0.33973],[0.28385,0.3262],[0.29379,0.33973]] }
+      ] },
+    { key:'SD0810', id:'SD-08.10', type:'Shower Door',
+      zone:'Bathroom', level:'L08', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"8th floor shower door 10 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 10", lf:4.00, pts:[[0.52656,0.19369],[0.51662,0.20722],[0.50668,0.19369],[0.51662,0.18016],[0.52656,0.19369]] }
       ] },
     { key:'TD08P01', id:'TD-08.1', type:'Terrace Divider',
       zone:'Terrace', level:'L08', status:'pending', date:'', louver:'na',
       sheet:'A-108.00', lf:5.42, panelsDone:[false],
       note:"8th floor terrace divider \u00b7 panel 1 of 2 \u00b7 5'-5\"",
       panels:[
-        { label:"5'-5\"", lf:5.42, pts:[[0.43491,0.52439],[0.43491,0.47561]] }
+        { label:"5'-5\"", lf:5.42, pts:[[0.74474,0.81984],[0.74474,0.78318]] }
       ] },
     { key:'TD08P02', id:'TD-08.2', type:'Terrace Divider',
       zone:'Terrace', level:'L08', status:'pending', date:'', louver:'na',
       sheet:'A-108.00', lf:5.42, panelsDone:[false],
       note:"8th floor terrace divider \u00b7 panel 2 of 2 \u00b7 5'-5\"",
       panels:[
-        { label:"5'-5\"", lf:5.42, pts:[[0.5258,0.52439],[0.5258,0.47561]] }
+        { label:"5'-5\"", lf:5.42, pts:[[0.79492,0.81984],[0.79492,0.78318]] }
+      ] },
+    { key:'SD0901', id:'SD-09.1', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 1 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.21464,0.69616],[0.2047,0.70969],[0.19477,0.69616],[0.2047,0.68263],[0.21464,0.69616]] }
+      ] },
+    { key:'SD0902', id:'SD-09.2', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 2 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.15223,0.69145],[0.14229,0.70498],[0.13235,0.69145],[0.14229,0.67792],[0.15223,0.69145]] }
+      ] },
+    { key:'SD0903', id:'SD-09.3', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 3 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.52257,0.62453],[0.51263,0.63806],[0.50269,0.62453],[0.51263,0.61101],[0.52257,0.62453]] }
+      ] },
+    { key:'SD0904', id:'SD-09.4', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 4 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.57468,0.62413],[0.56474,0.63766],[0.5548,0.62413],[0.56474,0.6106],[0.57468,0.62413]] }
+      ] },
+    { key:'SD0905', id:'SD-09.5', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 5 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.79265,0.62078],[0.78271,0.6343],[0.77277,0.62078],[0.78271,0.60725],[0.79265,0.62078]] }
+      ] },
+    { key:'SD0906', id:'SD-09.6', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 6 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.85681,0.58013],[0.84687,0.59365],[0.83693,0.58013],[0.84687,0.5666],[0.85681,0.58013]] }
+      ] },
+    { key:'SD0907', id:'SD-09.7', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 7 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.72381,0.54374],[0.71387,0.55727],[0.70393,0.54374],[0.71387,0.53021],[0.72381,0.54374]] }
+      ] },
+    { key:'SD0908', id:'SD-09.8', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 8 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.37725,0.50993],[0.36731,0.52346],[0.35737,0.50993],[0.36731,0.4964],[0.37725,0.50993]] }
+      ] },
+    { key:'SD0909', id:'SD-09.9', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 9 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.29379,0.33973],[0.28385,0.35326],[0.27391,0.33973],[0.28385,0.3262],[0.29379,0.33973]] }
+      ] },
+    { key:'SD0910', id:'SD-09.10', type:'Shower Door',
+      zone:'Bathroom', level:'L09', status:'pending', date:'', louver:'na',
+      sheet:'A-108.00', lf:4.0, panelsDone:[false],
+      note:"9th floor shower door 10 of 10 \u00b7 sheet A-108.00",
+      panels:[
+        { label:"Shower door 10", lf:4.00, pts:[[0.52656,0.19369],[0.51662,0.20722],[0.50668,0.19369],[0.51662,0.18016],[0.52656,0.19369]] }
       ] },
     { key:'GR10', id:'GR-10', type:'Guardrail', zone:'Terrace', level:'L10',
       status:'pending', date:'', louver:'na', sheet:'A-110.00',
       lf:52.0, lfDone:0, runsDone:[0,0],
       note:"10th floor guardrail \u00b7 2 runs \u00b7 52.0 LF",
       runs:[
-        { label:"24'-7\"", lf:24.58, pts:[[0.2743,0.56306],[0.37721,0.56306],[0.48171,0.50744]] },
-        { label:"27'-5\"", lf:27.42, pts:[[0.47898,0.50669],[0.7257,0.50669]] }
+        { label:"24'-7\"", lf:24.58, pts:[[0.61836,0.82058],[0.67519,0.82058],[0.73291,0.77894]] },
+        { label:"27'-5\"", lf:27.42, pts:[[0.7314,0.77838],[0.86765,0.77838]] }
+      ] },
+    { key:'SD1001', id:'SD-10.1', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 1 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.2143,0.69118],[0.20436,0.70466],[0.19442,0.69118],[0.20436,0.6777],[0.2143,0.69118]] }
+      ] },
+    { key:'SD1002', id:'SD-10.2', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 2 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.15223,0.6878],[0.14229,0.70128],[0.13235,0.6878],[0.14229,0.67433],[0.15223,0.6878]] }
+      ] },
+    { key:'SD1003', id:'SD-10.3', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 3 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.46761,0.60568],[0.45767,0.61916],[0.44773,0.60568],[0.45767,0.59221],[0.46761,0.60568]] }
+      ] },
+    { key:'SD1004', id:'SD-10.4', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 4 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.79659,0.60001],[0.78665,0.61349],[0.77671,0.60001],[0.78665,0.58654],[0.79659,0.60001]] }
+      ] },
+    { key:'SD1005', id:'SD-10.5', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 5 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.65069,0.52723],[0.64075,0.54071],[0.63081,0.52723],[0.64075,0.51376],[0.65069,0.52723]] }
+      ] },
+    { key:'SD1006', id:'SD-10.6', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 6 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.37703,0.50771],[0.36709,0.52118],[0.35715,0.50771],[0.36709,0.49423],[0.37703,0.50771]] }
+      ] },
+    { key:'SD1007', id:'SD-10.7', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 7 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.71135,0.50252],[0.70141,0.51599],[0.69147,0.50252],[0.70141,0.48904],[0.71135,0.50252]] }
+      ] },
+    { key:'SD1008', id:'SD-10.8', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 8 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.85485,0.43324],[0.84491,0.44672],[0.83497,0.43324],[0.84491,0.41977],[0.85485,0.43324]] }
+      ] },
+    { key:'SD1009', id:'SD-10.9', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 9 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.2929,0.33773],[0.28296,0.35121],[0.27302,0.33773],[0.28296,0.32426],[0.2929,0.33773]] }
+      ] },
+    { key:'SD1010', id:'SD-10.10', type:'Shower Door',
+      zone:'Bathroom', level:'L10', status:'pending', date:'', louver:'na',
+      sheet:'A-110.00', lf:4.0, panelsDone:[false],
+      note:"10th floor shower door 10 of 10 \u00b7 sheet A-110.00",
+      panels:[
+        { label:"Shower door 10", lf:4.00, pts:[[0.52679,0.1929],[0.51685,0.20637],[0.50691,0.1929],[0.51685,0.17942],[0.52679,0.1929]] }
       ] },
     { key:'TD10P01', id:'TD-10.1', type:'Terrace Divider',
       zone:'Terrace', level:'L10', status:'pending', date:'', louver:'na',
       sheet:'A-110.00', lf:7.52, panelsDone:[false],
       note:"10th floor terrace divider \u00b7 panel 1 of 2 \u00b7 7'-6 1/4\"",
       panels:[
-        { label:"7'-6 1/4\"", lf:7.52, pts:[[0.42926,0.53803],[0.42926,0.4704]] }
+        { label:"7'-6 1/4\"", lf:7.52, pts:[[0.70394,0.80184],[0.70394,0.75121]] }
       ] },
     { key:'TD10P02', id:'TD-10.2', type:'Terrace Divider',
       zone:'Terrace', level:'L10', status:'pending', date:'', louver:'na',
       sheet:'A-110.00', lf:8.02, panelsDone:[false],
       note:"10th floor terrace divider \u00b7 panel 2 of 2 \u00b7 8'-1/4\"",
       panels:[
-        { label:"8'-1/4\"", lf:8.02, pts:[[0.59502,0.50922],[0.59502,0.43694]] }
+        { label:"8'-1/4\"", lf:8.02, pts:[[0.79548,0.78027],[0.79548,0.72616]] }
+      ] },
+    { key:'SD1101', id:'SD-11.1', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 1 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.21551,0.78456],[0.2054,0.79986],[0.19528,0.78456],[0.2054,0.76926],[0.21551,0.78456]] }
+      ] },
+    { key:'SD1102', id:'SD-11.2', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 2 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.15259,0.77901],[0.14247,0.79431],[0.13235,0.77901],[0.14247,0.76371],[0.15259,0.77901]] }
+      ] },
+    { key:'SD1103', id:'SD-11.3', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 3 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.60542,0.76935],[0.5953,0.78465],[0.58519,0.76935],[0.5953,0.75406],[0.60542,0.76935]] }
+      ] },
+    { key:'SD1104', id:'SD-11.4', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 4 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.47282,0.68628],[0.4627,0.70158],[0.45258,0.68628],[0.4627,0.67098],[0.47282,0.68628]] }
+      ] },
+    { key:'SD1105', id:'SD-11.5', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 5 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.80834,0.68125],[0.79822,0.69655],[0.7881,0.68125],[0.79822,0.66595],[0.80834,0.68125]] }
+      ] },
+    { key:'SD1106', id:'SD-11.6', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 6 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.65901,0.59648],[0.64889,0.61178],[0.63878,0.59648],[0.64889,0.58118],[0.65901,0.59648]] }
+      ] },
+    { key:'SD1107', id:'SD-11.7', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 7 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.38116,0.57401],[0.37105,0.58931],[0.36093,0.57401],[0.37105,0.55871],[0.38116,0.57401]] }
+      ] },
+    { key:'SD1108', id:'SD-11.8', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 8 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.72125,0.56877],[0.71113,0.58407],[0.70101,0.56877],[0.71113,0.55348],[0.72125,0.56877]] }
+      ] },
+    { key:'SD1109', id:'SD-11.9', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 9 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.86765,0.48998],[0.85753,0.50528],[0.84741,0.48998],[0.85753,0.47468],[0.86765,0.48998]] }
+      ] },
+    { key:'SD1110', id:'SD-11.10', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 10 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 10", lf:4.00, pts:[[0.2957,0.38135],[0.28558,0.39665],[0.27546,0.38135],[0.28558,0.36606],[0.2957,0.38135]] }
+      ] },
+    { key:'SD1111', id:'SD-11.11', type:'Shower Door',
+      zone:'Bathroom', level:'L11', status:'pending', date:'', louver:'na',
+      sheet:'A-111.00', lf:4.0, panelsDone:[false],
+      note:"11th floor shower door 11 of 11 \u00b7 sheet A-111.00",
+      panels:[
+        { label:"Shower door 11", lf:4.00, pts:[[0.53337,0.21544],[0.52325,0.23074],[0.51314,0.21544],[0.52325,0.20014],[0.53337,0.21544]] }
       ] },
     { key:'GR12', id:'GR-12', type:'Guardrail', zone:'Terrace', level:'L12',
       status:'pending', date:'', louver:'na', sheet:'A-112.00',
       lf:264.19, lfDone:0, runsDone:[0,0,0],
       note:"12th floor guardrail \u00b7 3 runs \u00b7 264.19 LF",
       runs:[
-        { label:"196'-4\"", lf:196.33, pts:[[0.15935,0.22055],[0.13356,0.22055],[0.13356,0.77873],[0.63593,0.77873]] },
-        { label:"22'-5\"", lf:22.42, pts:[[0.63515,0.77941],[0.72037,0.69707]] },
-        { label:"45'-5 1/4\"", lf:45.44, pts:[[0.71918,0.6989],[0.71918,0.6681],[0.86765,0.6681],[0.86765,0.6134]] }
+        { label:"196'-4\"", lf:196.33, pts:[[0.15935,0.31629],[0.13356,0.31629],[0.13356,0.80591],[0.63593,0.80591]] },
+        { label:"22'-5\"", lf:22.42, pts:[[0.63515,0.80651],[0.72037,0.73428]] },
+        { label:"45'-5 1/4\"", lf:45.44, pts:[[0.71918,0.73588],[0.71918,0.70887],[0.86765,0.70887],[0.86765,0.66089]] }
+      ] },
+    { key:'SD1201', id:'SD-12.1', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 1 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.2391,0.66988],[0.23031,0.68273],[0.22152,0.66988],[0.23031,0.65703],[0.2391,0.66988]] }
+      ] },
+    { key:'SD1202', id:'SD-12.2', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 2 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.26819,0.4435],[0.2594,0.45635],[0.2506,0.4435],[0.2594,0.43065],[0.26819,0.4435]] }
+      ] },
+    { key:'SD1203', id:'SD-12.3', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 3 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.31209,0.6503],[0.3033,0.66315],[0.2945,0.6503],[0.3033,0.63745],[0.31209,0.6503]] }
+      ] },
+    { key:'SD1204', id:'SD-12.4', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 4 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.3402,0.34055],[0.33141,0.3534],[0.32262,0.34055],[0.33141,0.3277],[0.3402,0.34055]] }
+      ] },
+    { key:'SD1205', id:'SD-12.5', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 5 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.42601,0.58226],[0.41722,0.59511],[0.40843,0.58226],[0.41722,0.56941],[0.42601,0.58226]] }
+      ] },
+    { key:'SD1206', id:'SD-12.6', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 6 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.57117,0.20631],[0.56238,0.21917],[0.55359,0.20631],[0.56238,0.19346],[0.57117,0.20631]] }
+      ] },
+    { key:'SD1207', id:'SD-12.7', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 7 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.62333,0.57751],[0.61454,0.59036],[0.60574,0.57751],[0.61454,0.56466],[0.62333,0.57751]] }
+      ] },
+    { key:'SD1208', id:'SD-12.8', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 8 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.67645,0.60553],[0.66766,0.61838],[0.65886,0.60553],[0.66766,0.59268],[0.67645,0.60553]] }
+      ] },
+    { key:'SD1209', id:'SD-12.9', type:'Shower Door',
+      zone:'Bathroom', level:'L12', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"12th floor shower door 9 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.80053,0.50277],[0.79173,0.51562],[0.78294,0.50277],[0.79173,0.48992],[0.80053,0.50277]] }
       ] },
     { key:'TD12P01', id:'TD-12.1', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:6.33, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 1 of 11 \u00b7 6'-4\"",
       panels:[
-        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.30468],[0.16018,0.30468]] }
+        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.39009],[0.16018,0.39009]] }
       ] },
     { key:'TD12P02', id:'TD-12.2', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:6.33, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 2 of 11 \u00b7 6'-4\"",
       panels:[
-        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.45629],[0.16018,0.45629]] }
+        { label:"6'-4\"", lf:6.33, pts:[[0.13235,0.52307],[0.16018,0.52307]] }
       ] },
     { key:'TD12P03', id:'TD-12.3', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 3 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.26205,0.73647],[0.26205,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.26205,0.76884],[0.26205,0.80654]] }
       ] },
     { key:'TD12P04', id:'TD-12.4', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 4 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.3384,0.73647],[0.3384,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.3384,0.76884],[0.3384,0.80654]] }
       ] },
     { key:'TD12P05', id:'TD-12.5', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 5 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.39975,0.73647],[0.39975,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.39975,0.76884],[0.39975,0.80654]] }
       ] },
     { key:'TD12P06', id:'TD-12.6', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 6 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.46131,0.73647],[0.46131,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.46131,0.76884],[0.46131,0.80654]] }
       ] },
     { key:'TD12P07', id:'TD-12.7', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 7 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.51213,0.73647],[0.51213,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.51213,0.76884],[0.51213,0.80654]] }
       ] },
     { key:'TD12P08', id:'TD-12.8', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:5.88, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 8 of 11 \u00b7 5'-10 1/2\"",
       panels:[
-        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.56578,0.73647],[0.56578,0.77945]] }
+        { label:"5'-10 1/2\"", lf:5.88, pts:[[0.56578,0.76884],[0.56578,0.80654]] }
       ] },
     { key:'TD12P09', id:'TD-12.9', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:6.75, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 9 of 11 \u00b7 6'-9\"",
       panels:[
-        { label:"6'-9\"", lf:6.75, pts:[[0.64972,0.71016],[0.66461,0.75294]] }
+        { label:"6'-9\"", lf:6.75, pts:[[0.64972,0.74576],[0.66461,0.78329]] }
       ] },
     { key:'TD12P10', id:'TD-12.10', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:4.38, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 10 of 11 \u00b7 4'-4 1/2\"",
       panels:[
-        { label:"4'-4 1/2\"", lf:4.38, pts:[[0.72541,0.63795],[0.72541,0.66999]] }
+        { label:"4'-4 1/2\"", lf:4.38, pts:[[0.72541,0.68242],[0.72541,0.71052]] }
       ] },
     { key:'TD12P11', id:'TD-12.11', type:'Terrace Divider',
       zone:'Terrace', level:'L12', status:'pending', date:'', louver:'na',
       sheet:'A-112.00', lf:7.94, panelsDone:[false],
       note:"12th floor terrace divider \u00b7 panel 11 of 11 \u00b7 7'-11 1/4\"",
       panels:[
-        { label:"7'-11 1/4\"", lf:7.94, pts:[[0.80575,0.61177],[0.80575,0.66992]] }
+        { label:"7'-11 1/4\"", lf:7.94, pts:[[0.80575,0.65946],[0.80575,0.71047]] }
+      ] },
+    { key:'SD1301', id:'SD-13.1', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 1 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.2391,0.66988],[0.23031,0.68273],[0.22152,0.66988],[0.23031,0.65703],[0.2391,0.66988]] }
+      ] },
+    { key:'SD1302', id:'SD-13.2', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 2 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.26819,0.4435],[0.2594,0.45635],[0.2506,0.4435],[0.2594,0.43065],[0.26819,0.4435]] }
+      ] },
+    { key:'SD1303', id:'SD-13.3', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 3 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.31209,0.6503],[0.3033,0.66315],[0.2945,0.6503],[0.3033,0.63745],[0.31209,0.6503]] }
+      ] },
+    { key:'SD1304', id:'SD-13.4', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 4 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.3402,0.34055],[0.33141,0.3534],[0.32262,0.34055],[0.33141,0.3277],[0.3402,0.34055]] }
+      ] },
+    { key:'SD1305', id:'SD-13.5', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 5 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.42601,0.58226],[0.41722,0.59511],[0.40843,0.58226],[0.41722,0.56941],[0.42601,0.58226]] }
+      ] },
+    { key:'SD1306', id:'SD-13.6', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 6 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.57117,0.20631],[0.56238,0.21917],[0.55359,0.20631],[0.56238,0.19346],[0.57117,0.20631]] }
+      ] },
+    { key:'SD1307', id:'SD-13.7', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 7 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.62333,0.57751],[0.61454,0.59036],[0.60574,0.57751],[0.61454,0.56466],[0.62333,0.57751]] }
+      ] },
+    { key:'SD1308', id:'SD-13.8', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 8 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.67645,0.60553],[0.66766,0.61838],[0.65886,0.60553],[0.66766,0.59268],[0.67645,0.60553]] }
+      ] },
+    { key:'SD1309', id:'SD-13.9', type:'Shower Door',
+      zone:'Bathroom', level:'L13', status:'pending', date:'', louver:'na',
+      sheet:'A-112.00', lf:4.0, panelsDone:[false],
+      note:"13th floor shower door 9 of 9 \u00b7 sheet A-112.00",
+      panels:[
+        { label:"Shower door 9", lf:4.00, pts:[[0.80053,0.50277],[0.79173,0.51562],[0.78294,0.50277],[0.79173,0.48992],[0.80053,0.50277]] }
       ] },
     { key:'GR14', id:'GR-14', type:'Guardrail', zone:'Terrace', level:'L14',
       status:'pending', date:'', louver:'na', sheet:'A-114.00',
       lf:247.05, lfDone:0, runsDone:[0,0,0],
       note:"14th floor guardrail \u00b7 3 runs \u00b7 247.05 LF",
       runs:[
-        { label:"182'-8 3/4\"", lf:182.73, pts:[[0.1781,0.22669],[0.13358,0.22669],[0.13358,0.77164],[0.60907,0.77164]] },
-        { label:"26'-2\"", lf:26.17, pts:[[0.6087,0.77207],[0.7125,0.66894]] },
-        { label:"38'-1 3/4\"", lf:38.15, pts:[[0.7119,0.67066],[0.7119,0.63769],[0.86765,0.63769]] }
+        { label:"182'-8 3/4\"", lf:182.73, pts:[[0.1781,0.32672],[0.13358,0.32672],[0.13358,0.80117],[0.60907,0.80117]] },
+        { label:"26'-2\"", lf:26.17, pts:[[0.6087,0.80156],[0.7125,0.71176]] },
+        { label:"38'-1 3/4\"", lf:38.15, pts:[[0.7119,0.71326],[0.7119,0.68456],[0.86765,0.68456]] }
+      ] },
+    { key:'SD1401', id:'SD-14.1', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 1 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.27204,0.49338],[0.26286,0.50706],[0.25369,0.49338],[0.26286,0.4797],[0.27204,0.49338]] }
+      ] },
+    { key:'SD1402', id:'SD-14.2', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 2 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.2953,0.55433],[0.28613,0.56801],[0.27696,0.55433],[0.28613,0.54065],[0.2953,0.55433]] }
+      ] },
+    { key:'SD1403', id:'SD-14.3', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 3 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.31169,0.35387],[0.30252,0.36755],[0.29335,0.35387],[0.30252,0.34019],[0.31169,0.35387]] }
+      ] },
+    { key:'SD1404', id:'SD-14.4', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 4 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.43277,0.50631],[0.4236,0.51999],[0.41443,0.50631],[0.4236,0.49263],[0.43277,0.50631]] }
+      ] },
+    { key:'SD1405', id:'SD-14.5', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 5 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.48466,0.59405],[0.47549,0.60773],[0.46631,0.59405],[0.47549,0.58037],[0.48466,0.59405]] }
+      ] },
+    { key:'SD1406', id:'SD-14.6', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 6 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.5619,0.21105],[0.55272,0.22473],[0.54355,0.21105],[0.55272,0.19737],[0.5619,0.21105]] }
+      ] },
+    { key:'SD1407', id:'SD-14.7', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 7 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.65275,0.53459],[0.64358,0.54827],[0.63441,0.53459],[0.64358,0.5209],[0.65275,0.53459]] }
+      ] },
+    { key:'SD1408', id:'SD-14.8', type:'Shower Door',
+      zone:'Bathroom', level:'L14', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"14th floor shower door 8 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.72615,0.5362],[0.71698,0.54988],[0.70781,0.5362],[0.71698,0.52252],[0.72615,0.5362]] }
       ] },
     { key:'TD14P01', id:'TD-14.1', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.02, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 1 of 8 \u00b7 10'-1/4\"",
       panels:[
-        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.46664],[0.17834,0.46664]] }
+        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.53563],[0.17834,0.53563]] }
       ] },
     { key:'TD14P02', id:'TD-14.2', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.02, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 2 of 8 \u00b7 10'-1/4\"",
       panels:[
-        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.32175],[0.17834,0.32175]] }
+        { label:"10'-1/4\"", lf:10.02, pts:[[0.13235,0.40948],[0.17834,0.40948]] }
       ] },
     { key:'TD14P03', id:'TD-14.3', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.33, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 3 of 8 \u00b7 10'-4\"",
       panels:[
-        { label:"10'-4\"", lf:10.33, pts:[[0.34657,0.6921],[0.34657,0.77331]] }
+        { label:"10'-4\"", lf:10.33, pts:[[0.34657,0.73192],[0.34657,0.80263]] }
       ] },
     { key:'TD14P04', id:'TD-14.4', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.33, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 4 of 8 \u00b7 10'-4\"",
       panels:[
-        { label:"10'-4\"", lf:10.33, pts:[[0.39781,0.6921],[0.39781,0.77331]] }
+        { label:"10'-4\"", lf:10.33, pts:[[0.39781,0.73192],[0.39781,0.80263]] }
       ] },
     { key:'TD14P05', id:'TD-14.5', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.33, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 5 of 8 \u00b7 10'-4\"",
       panels:[
-        { label:"10'-4\"", lf:10.33, pts:[[0.45602,0.6921],[0.45602,0.77331]] }
+        { label:"10'-4\"", lf:10.33, pts:[[0.45602,0.73192],[0.45602,0.80263]] }
       ] },
     { key:'TD14P06', id:'TD-14.6', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.33, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 6 of 8 \u00b7 10'-4\"",
       panels:[
-        { label:"10'-4\"", lf:10.33, pts:[[0.56299,0.6921],[0.56299,0.77331]] }
+        { label:"10'-4\"", lf:10.33, pts:[[0.56299,0.73192],[0.56299,0.80263]] }
       ] },
     { key:'TD14P07', id:'TD-14.7', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:10.35, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 7 of 8 \u00b7 10'-4 1/4\"",
       panels:[
-        { label:"10'-4 1/4\"", lf:10.35, pts:[[0.66019,0.6293],[0.68403,0.69971]] }
+        { label:"10'-4 1/4\"", lf:10.35, pts:[[0.66019,0.67725],[0.68403,0.73855]] }
       ] },
     { key:'TD14P08', id:'TD-14.8', type:'Terrace Divider',
       zone:'Terrace', level:'L14', status:'pending', date:'', louver:'na',
       sheet:'A-114.00', lf:7.75, panelsDone:[false],
       note:"14th floor terrace divider \u00b7 panel 8 of 8 \u00b7 7'-9\"",
       panels:[
-        { label:"7'-9\"", lf:7.75, pts:[[0.81289,0.57862],[0.81289,0.63958]] }
+        { label:"7'-9\"", lf:7.75, pts:[[0.81289,0.63312],[0.81289,0.6862]] }
+      ] },
+    { key:'SD1501', id:'SD-15.1', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 1 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.27204,0.49338],[0.26286,0.50706],[0.25369,0.49338],[0.26286,0.4797],[0.27204,0.49338]] }
+      ] },
+    { key:'SD1502', id:'SD-15.2', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 2 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.2953,0.55433],[0.28613,0.56801],[0.27696,0.55433],[0.28613,0.54065],[0.2953,0.55433]] }
+      ] },
+    { key:'SD1503', id:'SD-15.3', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 3 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.31169,0.35387],[0.30252,0.36755],[0.29335,0.35387],[0.30252,0.34019],[0.31169,0.35387]] }
+      ] },
+    { key:'SD1504', id:'SD-15.4', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 4 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.43277,0.50631],[0.4236,0.51999],[0.41443,0.50631],[0.4236,0.49263],[0.43277,0.50631]] }
+      ] },
+    { key:'SD1505', id:'SD-15.5', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 5 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.48466,0.59405],[0.47549,0.60773],[0.46631,0.59405],[0.47549,0.58037],[0.48466,0.59405]] }
+      ] },
+    { key:'SD1506', id:'SD-15.6', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 6 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.5619,0.21105],[0.55272,0.22473],[0.54355,0.21105],[0.55272,0.19737],[0.5619,0.21105]] }
+      ] },
+    { key:'SD1507', id:'SD-15.7', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 7 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.65275,0.53459],[0.64358,0.54827],[0.63441,0.53459],[0.64358,0.5209],[0.65275,0.53459]] }
+      ] },
+    { key:'SD1508', id:'SD-15.8', type:'Shower Door',
+      zone:'Bathroom', level:'L15', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"15th floor shower door 8 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.72615,0.5362],[0.71698,0.54988],[0.70781,0.5362],[0.71698,0.52252],[0.72615,0.5362]] }
+      ] },
+    { key:'SD1601', id:'SD-16.1', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 1 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.27204,0.49338],[0.26286,0.50706],[0.25369,0.49338],[0.26286,0.4797],[0.27204,0.49338]] }
+      ] },
+    { key:'SD1602', id:'SD-16.2', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 2 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.2953,0.55433],[0.28613,0.56801],[0.27696,0.55433],[0.28613,0.54065],[0.2953,0.55433]] }
+      ] },
+    { key:'SD1603', id:'SD-16.3', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 3 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.31169,0.35387],[0.30252,0.36755],[0.29335,0.35387],[0.30252,0.34019],[0.31169,0.35387]] }
+      ] },
+    { key:'SD1604', id:'SD-16.4', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 4 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.43277,0.50631],[0.4236,0.51999],[0.41443,0.50631],[0.4236,0.49263],[0.43277,0.50631]] }
+      ] },
+    { key:'SD1605', id:'SD-16.5', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 5 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.48466,0.59405],[0.47549,0.60773],[0.46631,0.59405],[0.47549,0.58037],[0.48466,0.59405]] }
+      ] },
+    { key:'SD1606', id:'SD-16.6', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 6 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.5619,0.21105],[0.55272,0.22473],[0.54355,0.21105],[0.55272,0.19737],[0.5619,0.21105]] }
+      ] },
+    { key:'SD1607', id:'SD-16.7', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 7 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 7", lf:4.00, pts:[[0.65275,0.53459],[0.64358,0.54827],[0.63441,0.53459],[0.64358,0.5209],[0.65275,0.53459]] }
+      ] },
+    { key:'SD1608', id:'SD-16.8', type:'Shower Door',
+      zone:'Bathroom', level:'L16', status:'pending', date:'', louver:'na',
+      sheet:'A-114.00', lf:4.0, panelsDone:[false],
+      note:"16th floor shower door 8 of 8 \u00b7 sheet A-114.00",
+      panels:[
+        { label:"Shower door 8", lf:4.00, pts:[[0.72615,0.5362],[0.71698,0.54988],[0.70781,0.5362],[0.71698,0.52252],[0.72615,0.5362]] }
       ] },
     { key:'GR17', id:'GR-17', type:'Guardrail', zone:'Terrace', level:'L17',
       status:'pending', date:'', louver:'na', sheet:'A-117.00',
       lf:179.98, lfDone:0, runsDone:[0,0],
       note:"17th floor guardrail \u00b7 2 runs \u00b7 179.98 LF",
       runs:[
-        { label:"154'-3/4\"", lf:154.06, pts:[[0.17301,0.2372],[0.13406,0.2372],[0.13406,0.76034],[0.72295,0.76034]] },
-        { label:"25'-11\"", lf:25.92, pts:[[0.72096,0.76042],[0.86765,0.64329]] }
+        { label:"154'-3/4\"", lf:154.06, pts:[[0.17301,0.33362],[0.13406,0.33362],[0.13406,0.82627],[0.72295,0.82627]] },
+        { label:"25'-11\"", lf:25.92, pts:[[0.72096,0.82635],[0.86765,0.71604]] }
+      ] },
+    { key:'SD1701', id:'SD-17.1', type:'Shower Door',
+      zone:'Bathroom', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:4.0, panelsDone:[false],
+      note:"17th floor shower door 1 of 2 \u00b7 sheet A-117.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.38484,0.63089],[0.37176,0.64784],[0.35867,0.63089],[0.37176,0.61394],[0.38484,0.63089]] }
+      ] },
+    { key:'SD1702', id:'SD-17.2', type:'Shower Door',
+      zone:'Bathroom', level:'L17', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:4.0, panelsDone:[false],
+      note:"17th floor shower door 2 of 2 \u00b7 sheet A-117.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.66773,0.18836],[0.65465,0.20531],[0.64156,0.18836],[0.65465,0.17141],[0.66773,0.18836]] }
       ] },
     { key:'TD17P01', id:'TD-17.1', type:'Terrace Divider',
       zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
       sheet:'A-117.00', lf:6.31, panelsDone:[false],
       note:"17th floor terrace divider \u00b7 panel 1 of 5 \u00b7 6'-3 3/4\"",
       panels:[
-        { label:"6'-3 3/4\"", lf:6.31, pts:[[0.13235,0.35145],[0.1736,0.35145]] }
+        { label:"6'-3 3/4\"", lf:6.31, pts:[[0.13235,0.44122],[0.1736,0.44122]] }
       ] },
     { key:'TD17P02', id:'TD-17.2', type:'Terrace Divider',
       zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
       sheet:'A-117.00', lf:6.35, panelsDone:[false],
       note:"17th floor terrace divider \u00b7 panel 2 of 5 \u00b7 6'-4 1/4\"",
       panels:[
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.346,0.70561],[0.346,0.7628]] }
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.346,0.77473],[0.346,0.82859]] }
       ] },
     { key:'TD17P03', id:'TD-17.3', type:'Terrace Divider',
       zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
       sheet:'A-117.00', lf:6.35, panelsDone:[false],
       note:"17th floor terrace divider \u00b7 panel 3 of 5 \u00b7 6'-4 1/4\"",
       panels:[
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.48339,0.70561],[0.48339,0.7628]] }
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.48339,0.77473],[0.48339,0.82859]] }
       ] },
     { key:'TD17P04', id:'TD-17.4', type:'Terrace Divider',
       zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
       sheet:'A-117.00', lf:6.35, panelsDone:[false],
       note:"17th floor terrace divider \u00b7 panel 4 of 5 \u00b7 6'-4 1/4\"",
       panels:[
-        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.63967,0.70561],[0.63967,0.7628]] }
+        { label:"6'-4 1/4\"", lf:6.35, pts:[[0.63967,0.77473],[0.63967,0.82859]] }
       ] },
     { key:'TD17P05', id:'TD-17.5', type:'Terrace Divider',
       zone:'Terrace', level:'L17', status:'pending', date:'', louver:'na',
       sheet:'A-117.00', lf:6.75, panelsDone:[false],
       note:"17th floor terrace divider \u00b7 panel 5 of 5 \u00b7 6'-9\"",
       panels:[
-        { label:"6'-9\"", lf:6.75, pts:[[0.7668,0.65741],[0.78885,0.70999]] }
+        { label:"6'-9\"", lf:6.75, pts:[[0.7668,0.72934],[0.78885,0.77885]] }
+      ] },
+    { key:'SD1801', id:'SD-18.1', type:'Shower Door',
+      zone:'Bathroom', level:'L18', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:4.0, panelsDone:[false],
+      note:"18th floor shower door 1 of 2 \u00b7 sheet A-117.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.38484,0.63089],[0.37176,0.64784],[0.35867,0.63089],[0.37176,0.61394],[0.38484,0.63089]] }
+      ] },
+    { key:'SD1802', id:'SD-18.2', type:'Shower Door',
+      zone:'Bathroom', level:'L18', status:'pending', date:'', louver:'na',
+      sheet:'A-117.00', lf:4.0, panelsDone:[false],
+      note:"18th floor shower door 2 of 2 \u00b7 sheet A-117.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.66773,0.18836],[0.65465,0.20531],[0.64156,0.18836],[0.65465,0.17141],[0.66773,0.18836]] }
       ] },
     { key:'GR19', id:'GR-19', type:'Guardrail', zone:'Terrace', level:'L19',
       status:'pending', date:'', louver:'na', sheet:'A-119.00',
       lf:148.96, lfDone:0, runsDone:[0,0],
       note:"19th floor guardrail \u00b7 2 runs \u00b7 148.96 LF",
       runs:[
-        { label:"136'-10 1/2\"", lf:136.88, pts:[[0.18284,0.26955],[0.13446,0.26955],[0.13446,0.72801],[0.78453,0.72801]] },
-        { label:"12'-1\"", lf:12.08, pts:[[0.78296,0.72941],[0.86765,0.67448]] }
+        { label:"136'-10 1/2\"", lf:136.88, pts:[[0.18284,0.35537],[0.13446,0.35537],[0.13446,0.81383],[0.78453,0.81383]] },
+        { label:"12'-1\"", lf:12.08, pts:[[0.78296,0.81523],[0.86765,0.7603]] }
+      ] },
+    { key:'SD1901', id:'SD-19.1', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 1 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.4186,0.63203],[0.40235,0.65003],[0.38609,0.63203],[0.40235,0.61403],[0.4186,0.63203]] }
+      ] },
+    { key:'SD1902', id:'SD-19.2', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 2 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.55524,0.56739],[0.53898,0.58539],[0.52273,0.56739],[0.53898,0.54939],[0.55524,0.56739]] }
+      ] },
+    { key:'SD1903', id:'SD-19.3', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 3 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.6746,0.55941],[0.65835,0.57741],[0.64209,0.55941],[0.65835,0.54141],[0.6746,0.55941]] }
+      ] },
+    { key:'SD1904', id:'SD-19.4', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 4 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.8167,0.54372],[0.80044,0.56172],[0.78418,0.54372],[0.80044,0.52572],[0.8167,0.54372]] }
+      ] },
+    { key:'SD1905', id:'SD-19.5', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 5 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.42466,0.39046],[0.40841,0.40846],[0.39215,0.39046],[0.40841,0.37246],[0.42466,0.39046]] }
+      ] },
+    { key:'SD1906', id:'SD-19.6', type:'Shower Door',
+      zone:'Bathroom', level:'L19', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"19th floor shower door 6 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.73896,0.20173],[0.72271,0.21973],[0.70645,0.20173],[0.72271,0.18373],[0.73896,0.20173]] }
       ] },
     { key:'TD19P01', id:'TD-19.1', type:'Terrace Divider',
       zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
       sheet:'A-119.00', lf:6.5, panelsDone:[false],
       note:"19th floor terrace divider \u00b7 panel 1 of 4 \u00b7 6'-6\"",
       panels:[
-        { label:"6'-6\"", lf:6.50, pts:[[0.13235,0.37703],[0.18517,0.37703]] }
+        { label:"6'-6\"", lf:6.50, pts:[[0.13235,0.46285],[0.18517,0.46285]] }
       ] },
     { key:'TD19P02', id:'TD-19.2', type:'Terrace Divider',
       zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
       sheet:'A-119.00', lf:6.42, panelsDone:[false],
       note:"19th floor terrace divider \u00b7 panel 2 of 4 \u00b7 6'-5\"",
       panels:[
-        { label:"6'-5\"", lf:6.42, pts:[[0.40336,0.67266],[0.40336,0.73045]] }
+        { label:"6'-5\"", lf:6.42, pts:[[0.40336,0.75848],[0.40336,0.81627]] }
       ] },
     { key:'TD19P03', id:'TD-19.3', type:'Terrace Divider',
       zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
       sheet:'A-119.00', lf:6.42, panelsDone:[false],
       note:"19th floor terrace divider \u00b7 panel 3 of 4 \u00b7 6'-5\"",
       panels:[
-        { label:"6'-5\"", lf:6.42, pts:[[0.57412,0.67266],[0.57412,0.73045]] }
+        { label:"6'-5\"", lf:6.42, pts:[[0.57412,0.75848],[0.57412,0.81627]] }
       ] },
     { key:'TD19P04', id:'TD-19.4', type:'Terrace Divider',
       zone:'Terrace', level:'L19', status:'pending', date:'', louver:'na',
       sheet:'A-119.00', lf:6.42, panelsDone:[false],
       note:"19th floor terrace divider \u00b7 panel 4 of 4 \u00b7 6'-5\"",
       panels:[
-        { label:"6'-5\"", lf:6.42, pts:[[0.68783,0.67266],[0.68783,0.73045]] }
+        { label:"6'-5\"", lf:6.42, pts:[[0.68783,0.75848],[0.68783,0.81627]] }
+      ] },
+    { key:'SD2001', id:'SD-20.1', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 1 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.4186,0.63203],[0.40235,0.65003],[0.38609,0.63203],[0.40235,0.61403],[0.4186,0.63203]] }
+      ] },
+    { key:'SD2002', id:'SD-20.2', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 2 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.55524,0.56739],[0.53898,0.58539],[0.52273,0.56739],[0.53898,0.54939],[0.55524,0.56739]] }
+      ] },
+    { key:'SD2003', id:'SD-20.3', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 3 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.6746,0.55941],[0.65835,0.57741],[0.64209,0.55941],[0.65835,0.54141],[0.6746,0.55941]] }
+      ] },
+    { key:'SD2004', id:'SD-20.4', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 4 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.8167,0.54372],[0.80044,0.56172],[0.78418,0.54372],[0.80044,0.52572],[0.8167,0.54372]] }
+      ] },
+    { key:'SD2005', id:'SD-20.5', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 5 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.42466,0.39046],[0.40841,0.40846],[0.39215,0.39046],[0.40841,0.37246],[0.42466,0.39046]] }
+      ] },
+    { key:'SD2006', id:'SD-20.6', type:'Shower Door',
+      zone:'Bathroom', level:'L20', status:'pending', date:'', louver:'na',
+      sheet:'A-119.00', lf:4.0, panelsDone:[false],
+      note:"20th floor shower door 6 of 6 \u00b7 sheet A-119.00",
+      panels:[
+        { label:"Shower door 6", lf:4.00, pts:[[0.73896,0.20173],[0.72271,0.21973],[0.70645,0.20173],[0.72271,0.18373],[0.73896,0.20173]] }
       ] },
     { key:'GR21', id:'GR-21', type:'Guardrail', zone:'Terrace', level:'L21',
       status:'pending', date:'', louver:'na', sheet:'A-121.00',
       lf:66.3, lfDone:0, runsDone:[0,0],
-      note:"21th floor guardrail \u00b7 2 runs \u00b7 66.3 LF",
+      note:"21st floor guardrail \u00b7 2 runs \u00b7 66.3 LF",
       runs:[
-        { label:"33'-1 3/4\"", lf:33.15, pts:[[0.35019,0.32119],[0.64844,0.32119]] },
-        { label:"33'-1 3/4\"", lf:33.15, pts:[[0.35019,0.67881],[0.64841,0.67881]] }
+        { label:"33'-1 3/4\"", lf:33.15, pts:[[0.6486,0.41953],[0.86664,0.41953]] },
+        { label:"33'-1 3/4\"", lf:33.15, pts:[[0.6486,0.77714],[0.86662,0.77714]] }
+      ] },
+    { key:'SD2101', id:'SD-21.1', type:'Shower Door',
+      zone:'Bathroom', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"21st floor shower door 1 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15867,0.63028],[0.14551,0.64828],[0.13235,0.63028],[0.14551,0.61228],[0.15867,0.63028]] }
+      ] },
+    { key:'SD2102', id:'SD-21.2', type:'Shower Door',
+      zone:'Bathroom', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"21st floor shower door 2 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.2271,0.63003],[0.21394,0.64803],[0.20078,0.63003],[0.21394,0.61203],[0.2271,0.63003]] }
+      ] },
+    { key:'SD2103', id:'SD-21.3', type:'Shower Door',
+      zone:'Bathroom', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"21st floor shower door 3 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.37063,0.59503],[0.35747,0.61303],[0.34431,0.59503],[0.35747,0.57703],[0.37063,0.59503]] }
+      ] },
+    { key:'SD2104', id:'SD-21.4', type:'Shower Door',
+      zone:'Bathroom', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"21st floor shower door 4 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.16727,0.42611],[0.15411,0.44411],[0.14095,0.42611],[0.15411,0.40811],[0.16727,0.42611]] }
+      ] },
+    { key:'SD2105', id:'SD-21.5', type:'Shower Door',
+      zone:'Bathroom', level:'L21', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"21st floor shower door 5 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.37171,0.24086],[0.35855,0.25886],[0.34539,0.24086],[0.35855,0.22286],[0.37171,0.24086]] }
       ] },
     { key:'TD21P01', id:'TD-21.1', type:'Terrace Divider',
       zone:'Terrace', level:'L21', status:'pending', date:'', louver:'na',
       sheet:'A-121.00', lf:39.29, panelsDone:[false],
-      note:"21th floor terrace divider \u00b7 panel 1 of 1 \u00b7 39'-3 1/2\"",
+      note:"21st floor terrace divider \u00b7 panel 1 of 1 \u00b7 39'-3 1/2\"",
       panels:[
-        { label:"39'-3 1/2\"", lf:39.29, pts:[[0.3503,0.44223],[0.41398,0.44223],[0.41398,0.49638],[0.64981,0.49638]] }
+        { label:"39'-3 1/2\"", lf:39.29, pts:[[0.64868,0.54057],[0.69524,0.54057],[0.69524,0.59471],[0.86765,0.59471]] }
+      ] },
+    { key:'SD2201', id:'SD-22.1', type:'Shower Door',
+      zone:'Bathroom', level:'L22', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"22nd floor shower door 1 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.15867,0.63028],[0.14551,0.64828],[0.13235,0.63028],[0.14551,0.61228],[0.15867,0.63028]] }
+      ] },
+    { key:'SD2202', id:'SD-22.2', type:'Shower Door',
+      zone:'Bathroom', level:'L22', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"22nd floor shower door 2 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.2271,0.63003],[0.21394,0.64803],[0.20078,0.63003],[0.21394,0.61203],[0.2271,0.63003]] }
+      ] },
+    { key:'SD2203', id:'SD-22.3', type:'Shower Door',
+      zone:'Bathroom', level:'L22', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"22nd floor shower door 3 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.37063,0.59503],[0.35747,0.61303],[0.34431,0.59503],[0.35747,0.57703],[0.37063,0.59503]] }
+      ] },
+    { key:'SD2204', id:'SD-22.4', type:'Shower Door',
+      zone:'Bathroom', level:'L22', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"22nd floor shower door 4 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.16727,0.42611],[0.15411,0.44411],[0.14095,0.42611],[0.15411,0.40811],[0.16727,0.42611]] }
+      ] },
+    { key:'SD2205', id:'SD-22.5', type:'Shower Door',
+      zone:'Bathroom', level:'L22', status:'pending', date:'', louver:'na',
+      sheet:'A-121.00', lf:4.0, panelsDone:[false],
+      note:"22nd floor shower door 5 of 5 \u00b7 sheet A-121.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.37171,0.24086],[0.35855,0.25886],[0.34539,0.24086],[0.35855,0.22286],[0.37171,0.24086]] }
+      ] },
+    { key:'SD2301', id:'SD-23.1', type:'Shower Door',
+      zone:'Bathroom', level:'L23', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"23rd floor shower door 1 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.37206,0.6925],[0.35406,0.7105],[0.33606,0.6925],[0.35406,0.6745],[0.37206,0.6925]] }
+      ] },
+    { key:'SD2302', id:'SD-23.2', type:'Shower Door',
+      zone:'Bathroom', level:'L23', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"23rd floor shower door 2 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.46669,0.69385],[0.44869,0.71185],[0.43069,0.69385],[0.44869,0.67585],[0.46669,0.69385]] }
+      ] },
+    { key:'SD2303', id:'SD-23.3', type:'Shower Door',
+      zone:'Bathroom', level:'L23', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"23rd floor shower door 3 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.66394,0.65786],[0.64594,0.67586],[0.62794,0.65786],[0.64594,0.63986],[0.66394,0.65786]] }
+      ] },
+    { key:'SD2304', id:'SD-23.4', type:'Shower Door',
+      zone:'Bathroom', level:'L23', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"23rd floor shower door 4 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38408,0.48597],[0.36608,0.50397],[0.34808,0.48597],[0.36608,0.46797],[0.38408,0.48597]] }
+      ] },
+    { key:'SD2305', id:'SD-23.5', type:'Shower Door',
+      zone:'Bathroom', level:'L23', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"23rd floor shower door 5 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.66368,0.30615],[0.64568,0.32415],[0.62768,0.30615],[0.64568,0.28815],[0.66368,0.30615]] }
+      ] },
+    { key:'SD2401', id:'SD-24.1', type:'Shower Door',
+      zone:'Bathroom', level:'L24', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"24th floor shower door 1 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.37206,0.6925],[0.35406,0.7105],[0.33606,0.6925],[0.35406,0.6745],[0.37206,0.6925]] }
+      ] },
+    { key:'SD2402', id:'SD-24.2', type:'Shower Door',
+      zone:'Bathroom', level:'L24', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"24th floor shower door 2 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.46669,0.69385],[0.44869,0.71185],[0.43069,0.69385],[0.44869,0.67585],[0.46669,0.69385]] }
+      ] },
+    { key:'SD2403', id:'SD-24.3', type:'Shower Door',
+      zone:'Bathroom', level:'L24', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"24th floor shower door 3 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.66394,0.65786],[0.64594,0.67586],[0.62794,0.65786],[0.64594,0.63986],[0.66394,0.65786]] }
+      ] },
+    { key:'SD2404', id:'SD-24.4', type:'Shower Door',
+      zone:'Bathroom', level:'L24', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"24th floor shower door 4 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38408,0.48597],[0.36608,0.50397],[0.34808,0.48597],[0.36608,0.46797],[0.38408,0.48597]] }
+      ] },
+    { key:'SD2405', id:'SD-24.5', type:'Shower Door',
+      zone:'Bathroom', level:'L24', status:'pending', date:'', louver:'na',
+      sheet:'A-123.00', lf:4.0, panelsDone:[false],
+      note:"24th floor shower door 5 of 5 \u00b7 sheet A-123.00",
+      panels:[
+        { label:"Shower door 5", lf:4.00, pts:[[0.66368,0.30615],[0.64568,0.32415],[0.62768,0.30615],[0.64568,0.28815],[0.66368,0.30615]] }
+      ] },
+    { key:'SD2501', id:'SD-25.1', type:'Shower Door',
+      zone:'Bathroom', level:'L25', status:'pending', date:'', louver:'na',
+      sheet:'A-125.00', lf:4.0, panelsDone:[false],
+      note:"25th floor shower door 1 of 4 \u00b7 sheet A-125.00",
+      panels:[
+        { label:"Shower door 1", lf:4.00, pts:[[0.37206,0.60227],[0.35406,0.62027],[0.33606,0.60227],[0.35406,0.58427],[0.37206,0.60227]] }
+      ] },
+    { key:'SD2502', id:'SD-25.2', type:'Shower Door',
+      zone:'Bathroom', level:'L25', status:'pending', date:'', louver:'na',
+      sheet:'A-125.00', lf:4.0, panelsDone:[false],
+      note:"25th floor shower door 2 of 4 \u00b7 sheet A-125.00",
+      panels:[
+        { label:"Shower door 2", lf:4.00, pts:[[0.46455,0.60121],[0.44655,0.61921],[0.42855,0.60121],[0.44655,0.58321],[0.46455,0.60121]] }
+      ] },
+    { key:'SD2503', id:'SD-25.3', type:'Shower Door',
+      zone:'Bathroom', level:'L25', status:'pending', date:'', louver:'na',
+      sheet:'A-125.00', lf:4.0, panelsDone:[false],
+      note:"25th floor shower door 3 of 4 \u00b7 sheet A-125.00",
+      panels:[
+        { label:"Shower door 3", lf:4.00, pts:[[0.66394,0.56644],[0.64594,0.58444],[0.62794,0.56644],[0.64594,0.54844],[0.66394,0.56644]] }
+      ] },
+    { key:'SD2504', id:'SD-25.4', type:'Shower Door',
+      zone:'Bathroom', level:'L25', status:'pending', date:'', louver:'na',
+      sheet:'A-125.00', lf:4.0, panelsDone:[false],
+      note:"25th floor shower door 4 of 4 \u00b7 sheet A-125.00",
+      panels:[
+        { label:"Shower door 4", lf:4.00, pts:[[0.38272,0.39773],[0.36472,0.41573],[0.34672,0.39773],[0.36472,0.37973],[0.38272,0.39773]] }
       ] },
     { key:'GR26', id:'GR-26', type:'Guardrail', zone:'Terrace', level:'L26',
       status:'pending', date:'', louver:'na', sheet:'A-126.00',

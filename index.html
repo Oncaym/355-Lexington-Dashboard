@@ -100,7 +100,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="project-config.js?v=20260827d-panels"></script>
+<script src="project-config.js?v=20260901b-scopes"></script>
 <script src="cloud-sync.js?v=20260805a"></script>
 
 
@@ -136,6 +136,7 @@
     --rail-gr: #7ee787;
     --rail-td: #a371f7;
     --rail-es: #e3b341;
+    --rail-sd: #39d0d6;
     --rail-track: rgba(140,150,165,.55);
     --plan-dim: 0.35;      /* how loud the sheet under our scope is — see .plan-img */
     /* Chart ink. core's chartTickColor()/chartGridColor() are hardcoded per
@@ -166,6 +167,7 @@
     --rail-gr: #1a7f37;
     --rail-td: #8250df;
     --rail-es: #9a6700;
+    --rail-sd: #0d7d84;
     --rail-track: rgba(90,100,115,.45);
     --plan-dim: 0.4;       /* black linework on a light page fades faster than white on dark */
     --chart-tick: #59636e;
@@ -1742,7 +1744,7 @@
 </style>
 <style data-designer-overlay="1"></style></head>
 <body data-om-id="17a02737:4">
-<script src="themes.js?v=20260827d-panels"></script>
+<script src="themes.js?v=20260901b-scopes"></script>
 
 <header data-om-id="17a02737:5">
   <div class="header-inner" data-om-id="17a02737:6">
@@ -1791,6 +1793,11 @@
       <div class="kpi-value" id="kpi-lf-es">0%</div>
       <div class="kpi-sub" id="kpi-lf-es-sub">0 / 0 LF</div>
     </div>
+    <div class="kpi-card clickable" onclick="LF.openDetail('shower')" style="--kpi-accent:#39d0d6">
+      <div class="kpi-label">Shower Doors</div>
+      <div class="kpi-value" id="kpi-lf-sd">0%</div>
+      <div class="kpi-sub" id="kpi-lf-sd-sub">0 / 0 doors</div>
+    </div>
     <div class="kpi-card green clickable" onclick="openKpiDetail('installed')" data-om-id="17a02737:27">
       <div class="kpi-label" data-i18n="kpi_installed" data-om-id="17a02737:28">Rows Complete</div>
       <div class="kpi-value" id="kpi-installed" data-om-id="17a02737:29">0</div>
@@ -1822,15 +1829,11 @@
       </div>
     </div>
     <div class="plan-toolbar" data-om-id="17a02737:73">
-      <div style="display:flex;gap:4px;background:var(--bg);padding:3px;border-radius:6px;border:1px solid var(--border)" data-om-id="17a02737:74">
-        <button class="level-btn active" data-level="L08" onclick="setLevel('L08')">8th Floor</button>
-        <button class="level-btn" data-level="L10" onclick="setLevel('L10')">10th Floor</button>
-        <button class="level-btn" data-level="L12" onclick="setLevel('L12')">12th Floor</button>
-        <button class="level-btn" data-level="L14" onclick="setLevel('L14')">14th Floor</button>
-        <button class="level-btn" data-level="L17" onclick="setLevel('L17')">17th Floor</button>
-        <button class="level-btn" data-level="L19" onclick="setLevel('L19')">19th Floor</button>
-        <button class="level-btn" data-level="L21" onclick="setLevel('L21')">21st Floor</button>
-        <button class="level-btn" data-level="L26" onclick="setLevel('L26')">26th Floor</button>
+      <!-- PLACEHOLDER. core rebuilds this row from PROJECT.floors on every render, so there
+           is no point hand-maintaining it — and since the shower doors brought floors 2-25
+           into scope there are 26 of them, which is why the row wraps. -->
+      <div style="display:flex;flex-wrap:wrap;gap:4px;background:var(--bg);padding:3px;border-radius:6px;border:1px solid var(--border)" data-om-id="17a02737:74">
+        <button class="level-btn active" data-level="L02" onclick="setLevel('L02')">2nd Floor</button>
       </div>
       <label class="mode-toggle" data-om-id="17a02737:77">
         <input type="checkbox" id="editPositionMode" data-om-id="17a02737:78">
@@ -1869,7 +1872,7 @@
            forces the browser to rasterize the plan into a layer that iOS Safari then
            BITMAP-scales on pinch-zoom → the mush the GC saw at 400%. We now ship a
            pre-inverted twin (gf-plan-white.png) and swap the src by theme, no filter. -->
-      <img src="plan-l08-white.png" data-plan-light="plan-l08.png" data-plan-dark="plan-l08-white.png" alt="355 Lexington Avenue — 8th Floor (placeholder plan)" data-i18n-alt="img_alt_gf" class="plan-img" id="planImg" data-plan-gf="" data-om-id="17a02737:93">
+      <img src="plan-l02-white.png" data-plan-light="plan-l02.png" data-plan-dark="plan-l02-white.png" alt="355 Lexington Avenue — 2nd-7th Floor plan" data-i18n-alt="img_alt_gf" class="plan-img" id="planImg" data-plan-gf="" data-om-id="17a02737:93">
       <div class="plan-tooltip" id="planTooltip" style="left: 1006.14px; top: 195.922px; display: none;" data-om-id="17a02737:94"></div>
     </div>
     </div>
@@ -1893,6 +1896,7 @@
           <div class="legend-item"><span class="status-dot" style="background:var(--rail-gr)"></span><span>Guardrail</span></div>
           <div class="legend-item"><span class="status-dot" style="background:var(--rail-td)"></span><span>Terrace Divider</span></div>
           <div class="legend-item"><span class="status-dot" style="background:var(--rail-es)"></span><span>Equipment Screen</span></div>
+          <div class="legend-item"><span class="status-dot" style="background:var(--rail-sd)"></span><span>Shower Door</span></div>
         </div>
       </div>
       <div class="chart-wrap" data-om-id="17a02737:181"><canvas id="trendChart" style="box-sizing: border-box; display: block; height: 280px; width: 834px;" width="834" height="280" data-om-id="17a02737:182"></canvas></div>
@@ -2267,7 +2271,9 @@
 <script type="application/json" id="__embedded_state"></script>
 <script src="app-log.js?v=20260805k"></script>
 <script src="app.js?v=20260805l"></script>
-<script src="lf.js?v=20260827d-panels"></script>
+<script src="lf.js?v=20260901b-scopes"></script>
 <!-- boot handled inside app.js (core) -->
+<script src="af-hub-config.js?v=1"></script>
+<script src="hub-report.js?v=1"></script>
 </body>
 </html>
