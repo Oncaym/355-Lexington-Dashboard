@@ -5251,6 +5251,10 @@ async function migrateLegacyPhotos() {
   });
   if (!jobs.length) return;
   _photoMigrationRan = true;
+  /* The label was hard-coded 'AC3' from the day this was written for AC3, so CP2 and
+     Lexington reported their own Storage failures under AC3's name (Leo, 2026-09-18).
+     The bucket named in `e` was always the project's own - only the prefix ever lied. */
+  const MTAG = `${(PROJECT.hubId || 'photo').toUpperCase()} photo migration`;
 
   toast(`正在把 ${jobs.length} 张老照片迁移到云存储… / Migrating ${jobs.length} legacy photos`);
   let ok = 0, fail = 0;
@@ -5265,7 +5269,7 @@ async function migrateLegacyPhotos() {
       entry.photos[j.pi] = url;
       ok++;
     } catch (e) {
-      console.warn('AC3 photo migration: upload failed, keeping data-URL for retry', e);
+      console.warn(`${MTAG}: upload failed, keeping data-URL for retry`, e);
       fail++;
     }
   }
@@ -5274,7 +5278,7 @@ async function migrateLegacyPhotos() {
     toast(`✓ 照片迁移完成：${ok} 张已上云${fail ? `，${fail} 张失败（下次加载重试）` : ''}`);
   } else if (fail > 0) {
     _photoMigrationRan = false;   // nothing succeeded — allow retry
-    console.warn(`AC3 photo migration: all ${fail} uploads failed`);
+    console.warn(`${MTAG}: all ${fail} uploads failed`);
   }
 }
 
