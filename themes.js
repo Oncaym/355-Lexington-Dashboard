@@ -90,6 +90,7 @@
         '--rail-gr': '#E8B04B',
         '--rail-td': '#6E9A8D',
         '--rail-es': '#CBB994',       // telegram paper — the equipment screens
+        '--rail-sd': '#7FA8B8',       // signal blue — the shower doors
         '--rail-track': 'rgba(154,138,107,0.42)',
         /* Charts: core's tick/grid helpers are hardcoded per day/night, so
            lf.js prefers these when a theme provides them. */
