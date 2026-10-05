@@ -1,27 +1,14 @@
 {
-  "cleanUrls": true,
-  "headers": [
+  "redirects": [
     {
-      "source": "/(.*\\.html|)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, must-revalidate"
-        }
-      ]
+      "source": "/chat",
+      "destination": "https://af-hub-two.vercel.app/lex/chat.html",
+      "permanent": false
     },
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
+      "source": "/:path*",
+      "destination": "https://af-hub-two.vercel.app/lex/:path*",
+      "permanent": false
     }
   ]
 }
