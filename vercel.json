@@ -6,8 +6,13 @@
       "permanent": false
     },
     {
-      "source": "/:path*",
-      "destination": "https://af-hub-two.vercel.app/lex/:path*",
+      "source": "/",
+      "destination": "https://af-hub-two.vercel.app/lex/",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "destination": "https://af-hub-two.vercel.app/lex/$1",
       "permanent": false
     }
   ]
